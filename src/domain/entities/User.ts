@@ -1,4 +1,5 @@
 import { Publication } from "./Publication";
+import { Role } from "./Role";
 
 export interface UserProps {
   id?: string;
@@ -7,6 +8,7 @@ export interface UserProps {
   password: string;
   createdAt?: Date;
   updatedAt?: Date;
+  role?:Role;
 }
 
 export class User {
@@ -17,6 +19,7 @@ export class User {
   private readonly createdAt: Date;
   private updatedAt: Date;
   private publications: Publication[];
+  private role: Role;
 
   constructor(props: UserProps) {
     this.id = props.id || this.generateId();
@@ -26,7 +29,17 @@ export class User {
     this.createdAt = props.createdAt || new Date();
     this.updatedAt = props.updatedAt || new Date();
     this.publications = [];
+    this.role = props.role || Role.USER;
   }
+
+  public changeToAdmin(){
+    this.role = Role.ADMIN
+  }
+
+  public changeToUser(){
+    this.role = Role.USER
+  }
+
 
   private generateId(): string {
     return Math.random().toString(36).substring(2, 9);
@@ -78,6 +91,10 @@ export class User {
     this.updatedAt = new Date();
   }
 
+  public isAdmin(): boolean {
+    return this.role === Role.ADMIN;
+  }
+
   // To plain object for data transfer
   public toJSON(): Omit<UserProps, 'password'> {
     return {
@@ -86,6 +103,7 @@ export class User {
       email: this.email,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      role: this.role,
     };
   }
 
