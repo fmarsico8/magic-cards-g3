@@ -1,39 +1,39 @@
-import { PaginatedResponse } from "../utils/pagination.response";
-import { CreatePublicationClient } from "./createPublication.client";
-import { DeletePublicationClient } from "./deletePublication.client";
-import { GetAllPublicationsClient } from "./getAllPublications.client";
-import { GetByIdPublicationClient } from "./getPublicationByID.client";
+import { CreateBaseClient } from "../base/createBase.client"
+import { GetByIdBaseClient } from "../base/getBaseById.client"
+import { GetAllBaseClient } from "../base/getAllBase.client"
+import { DeleteBaseClient } from "../base/deleteBase.client"
+import { UpdateBaseClient } from "../base/updateCard.client"
+import { PaginatedResponse } from "../utils/pagination.response"
 import { CreateRequest } from "./request/create.request";
 import { GetRequest } from "./request/get.request";
 import { UpdateRequest } from "./request/update.request";
 import { PublicationResponse } from "./response/publication.response";
-import { UpdatePublicationClient } from "./updatePublication.client";
 
 export class PublicationsClient {
-    
-    createClient = new CreatePublicationClient()
-    getAllClient = new GetAllPublicationsClient()
-    getByIdClient = new GetByIdPublicationClient()
-    updateClient = new UpdatePublicationClient()
-    deleteClient = new DeletePublicationClient() 
+    url = "/publications/"
+    createClient = new CreateBaseClient()
+    getAllClient = new GetAllBaseClient()
+    getByIdClient = new GetByIdBaseClient()
+    updateClient = new UpdateBaseClient()
+    deleteClient = new DeleteBaseClient() 
 
     create(request: CreateRequest, token: string): Promise<PublicationResponse> {
-        return this.createClient.execute(request, token);
+        return this.createClient.execute<CreateRequest,PublicationResponse>(request, token,this.url);
     }
 
     getAll(request: GetRequest, token: string): Promise<PaginatedResponse<PublicationResponse>> {
-        return this.getAllClient.execute(request, token);
+        return this.getAllClient.execute<PublicationResponse>(request, token,this.url);
     }
 
     getById(request: string, token: string): Promise<PublicationResponse> {
-        return this.getByIdClient.execute(request, token);
+        return this.getByIdClient.execute<PublicationResponse>(this.url+request, token);
     }
 
     update(request: UpdateRequest, token: string): Promise<PublicationResponse> {
-        return this.updateClient.execute(request, token);
+        return this.updateClient.execute<PublicationResponse>(request, token,this.url);
     }
 
     delete(request: string, token: string): Promise<void> {
-       return this.deleteClient.execute(request,token);
+       return this.deleteClient.execute(this.url+request,token);
     }
 }

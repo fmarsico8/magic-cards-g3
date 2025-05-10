@@ -1,35 +1,39 @@
+import { CreateBaseClient } from "../base/createBase.client"
+import { GetByIdBaseClient } from "../base/getBaseById.client"
+import { GetAllBaseClient } from "../base/getAllBase.client"
+import { DeleteBaseClient } from "../base/deleteBase.client"
+import { UpdateBaseClient } from "../base/updateCard.client"
 import { PaginatedResponse } from "../utils/pagination.response"
-import { CreateBaseCardClient } from "./createBaseCard.client"
-import { GetAllBaseCardsClient } from "./getAllBaseCards.client"
 import { CreateRequest } from "./request/create.request"
 import { GetRequest } from "./request/get.request"
 import { BaseCardResponse } from "./response/baseCard.response"
+// import { UpdateRequest } from "./request/update.request"
 
 export class BaseCardsClient {
-    createClient = new CreateBaseCardClient()
-    getAllClient = new GetAllBaseCardsClient()
-    // getByIdClient = new GetByIdCardClient()
-    // updateClient = new UpdateCardClient()
-    // deleteClient = new DeleteCardClient() 
+    url = "/card-bases/"
+    createClient = new CreateBaseClient()
+    getAllClient = new GetAllBaseClient()
+    getByIdClient = new GetByIdBaseClient()
+    updateClient = new UpdateBaseClient()
+    deleteClient = new DeleteBaseClient()
 
     create(request: CreateRequest, token: string): Promise<BaseCardResponse> {
-        return this.createClient.execute(request, token);
+        return this.createClient.execute<CreateRequest,BaseCardResponse>(request, token,this.url);
     }
 
     getAll(request: GetRequest, token: string): Promise<PaginatedResponse<BaseCardResponse>> {
-        return this.getAllClient.execute(request,token);
+        return this.getAllClient.execute<BaseCardResponse>(request,token,this.url);
     }
     
+    getById(request: string, token: string): Promise<BaseCardResponse> {
+        return this.getByIdClient.execute(this.url+request, token);
+    }
 
-    // getById(request: string, token: string): Promise<CardResponse> {
-    //     return this.getByIdClient.execute(request, token);
+    // update(request: UpdateRequest, token: string): Promise<BaseCardResponse> {
+    //     return this.updateClient.execute<BaseCardResponse>(request, token,`/publications/${request.publicationId}`);
     // }
 
-    // update(request: UpdateRequest, token: string): Promise<CardResponse> {
-    //     return this.updateClient.execute(request, token);
-    // }
-
-    // delete(request: string, token: string): Promise<void> {
-    //    return this.deleteClient.execute(request,token);
-    // }
+    delete(request: string, token: string): Promise<void> {
+       return this.deleteClient.execute(this.url+request,token);
+    }
 }
