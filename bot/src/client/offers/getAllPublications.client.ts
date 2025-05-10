@@ -1,6 +1,7 @@
 import { BaseApiClient } from "../base/BaseApiClient";
 import { OfferResponse } from "./response/offer.response";
 import { GetRequest } from "./request/get.request";
+import { PaginatedResponse } from "../utils/pagination.response";
 
 export class GetAllOffersClient extends BaseApiClient {
   async execute(request: GetRequest, token: string): Promise<PaginatedResponse<OfferResponse>> {

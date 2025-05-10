@@ -1,3 +1,4 @@
+import { PaginatedResponse } from "../utils/pagination.response";
 import { CreatePublicationClient } from "./createPublication.client";
 import { DeletePublicationClient } from "./deletePublication.client";
 import { GetAllPublicationsClient } from "./getAllPublications.client";

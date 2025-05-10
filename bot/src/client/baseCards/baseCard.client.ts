@@ -1,3 +1,4 @@
+import { PaginatedResponse } from "../utils/pagination.response"
 import { CreateBaseCardClient } from "./createBaseCard.client"
 import { GetAllBaseCardsClient } from "./getAllBaseCards.client"
 import { CreateRequest } from "./request/create.request"

@@ -3,6 +3,7 @@ import { CreateRequest } from "./request/create.request"
 import { GetRequest } from "./request/get.request"
 import { GameResponse } from "./response/game.response"
 import { CreateGameClient } from "./createGame.client"
+import { PaginatedResponse } from "../utils/pagination.response"
 
 export class GamesClient {
     createClient = new CreateGameClient()

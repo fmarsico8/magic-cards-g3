@@ -1,3 +1,4 @@
+import { PaginatedResponse } from "@/client/utils/pagination.response";
 import { InlineKeyboard } from "grammy";
 
 export class Keyboard< R extends { limit?: number; offset?: number },T extends { id: string }> {

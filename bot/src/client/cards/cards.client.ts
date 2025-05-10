@@ -1,3 +1,4 @@
+import { PaginatedResponse } from "../utils/pagination.response"
 import { CreateCardClient } from "./createCard.client"
 import { DeleteCardClient } from "./deleteCard.client"
 import { GetAllCardsClient } from "./getAllCards.client"

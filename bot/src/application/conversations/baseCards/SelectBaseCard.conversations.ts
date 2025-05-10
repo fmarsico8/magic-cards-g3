@@ -1,6 +1,6 @@
 import { Conversation } from "@grammyjs/conversations";
 import { BotContext } from "../../../types/botContext";
-import { handleError } from "../../../types/errors"; // asegúrate de tener esta importación
+import { handleError } from "../../../types/errors";
 import { BaseCardResponse } from "../../../client/baseCards/response/baseCard.response";
 import { Keyboard } from "../utils/keyboard.utils";
 import { GetRequest } from "../../../client/baseCards/request/get.request";

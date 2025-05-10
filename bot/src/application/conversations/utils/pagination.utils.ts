@@ -1,5 +1,6 @@
 import { Context, InlineKeyboard } from "grammy";
 import { Conversation } from "@grammyjs/conversations";
+import { PaginatedResponse } from "../../../client/utils/pagination.response";
 
 // Minimal client contract with getAll
 export interface PaginatedClient<Req, T> {

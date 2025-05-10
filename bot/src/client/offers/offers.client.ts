@@ -7,6 +7,7 @@ import { GetRequest } from "./request/get.request";
 import { UpdateRequest } from "./request/update.request";
 import { OfferResponse } from "./response/offer.response";
 import { UpdateOfferClient } from "./updatePublication.client";
+import { PaginatedResponse } from "../utils/pagination.response";
 
 export class OffersClient {
     
