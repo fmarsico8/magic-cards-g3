@@ -28,7 +28,7 @@ export async function selectCardConversation(
       enableNone,
       (card) => card.cardBase?.Name || "Unnamed card"
     );
-    const resp = await keyboardGeneric.fetchPage(offset);
+    let resp = await keyboardGeneric.fetchPage(offset);
 
     while (true) {
       const keyboard = keyboardGeneric.buildKeyboard(resp);
@@ -68,6 +68,8 @@ export async function selectCardConversation(
 
       if (data.startsWith("nav|")) {
         offset = Number(data.split("|")[1]);
+        let newResponse = await keyboardGeneric.fetchPage(offset);
+        resp = newResponse;
         continue;
       }
 
