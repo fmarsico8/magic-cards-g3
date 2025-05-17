@@ -1,7 +1,7 @@
 import { Offer } from "../../domain/entities/Offer";
 import { OfferRepository } from "../../domain/repositories/OfferRepository";
 import { CreateOfferDTO, OfferFilterDTO, OfferResponseDTO, OfferUpdatedDTO } from "../dtos/OfferDTO";  
-import { userRepository, publicationRepository, cardRepository, statisticsRepository} from "../../infrastructure/repositories/Container";
+import { userRepository, publicationRepository, cardRepository, statisticsRepository} from "../../infrastructure/provider/Container";
 import { Card } from "../../domain/entities/Card";
 import { UserService } from "./UserService";
 import { StatusOffer } from "../../domain/entities/StatusOffer";
@@ -94,13 +94,14 @@ export class OfferService {
         publication.validateOwnership(user, "publication");
 
         if(offerData.statusOffer === StatusOffer.ACCEPTED) {
-            const [acceptedOffer, cards] = publication.acceptOffer(offer);
+            const [offerRejected, cards, ] = publication.acceptOffer(offer);
             await Promise.all(cards.map(card => cardRepository.update(card)));
             await publicationRepository.update(publication);
             await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_ACCEPTED, new Date(), 1));
 
-            this.offerRepository.update(acceptedOffer);
-            return this.toOfferResponseDTO(acceptedOffer);
+            this.offerRepository.update(offer);
+            offerRejected.forEach(offer => this.offerRepository.update(offer));
+            return this.toOfferResponseDTO(offer);
         }
 
         if(offerData.statusOffer === StatusOffer.REJECTED) {
