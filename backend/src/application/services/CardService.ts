@@ -28,15 +28,6 @@ export class CardService {
         return this.toCardResponseDTO(card);
       }
 
-    public async getAllCards(filters: CardFilterDTO): Promise<CardResponseDTO[]> {
-        if(filters.ownerId){
-            await this.userService.getSimpleUser(filters.ownerId)
-        }
-
-        const filteredCards: Card[] = await this.cardRepository.find(filters);
-        return filteredCards.map(card => this.toCardResponseDTO(card));
-    }
-
     public async getAllCardsPaginated(filters: PaginationDTO<CardFilterDTO>): Promise<PaginatedResponseDTO<CardResponseDTO>> {
         if(filters.data.ownerId){
             await this.userService.getSimpleUser(filters.data.ownerId)
@@ -54,6 +45,11 @@ export class CardService {
     public async getCard(id: string): Promise<CardResponseDTO>{
         const card = await this.getSimpleCard(id);
         return this.toCardResponseDTO(card);
+    }
+
+    public async getAllCards(): Promise<CardResponseDTO[]> {
+        const cards = await this.cardRepository.findPaginated({ data: {}, limit: 100, offset: 0 });
+        return cards.data.map(card => this.toCardResponseDTO(card));
     }
 
     private toCardResponseDTO(card: Card): CardResponseDTO {

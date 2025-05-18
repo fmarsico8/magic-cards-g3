@@ -1,7 +1,8 @@
 import { Game } from '../../domain/entities/Game';
 import { GameRepository } from '../../domain/repositories/GameRepository';
 import { GameService } from '../../application/services/GameService';
-import { CreateGameDTO, UpdateGameDTO } from '../../application/dtos/GameDTO';
+import { CreateGameDTO, UpdateGameDTO, GameFilterDTO } from '../../application/dtos/GameDTO';
+import { PaginationDTO } from '@/application/dtos/PaginationDTO';
 
 describe('GameService', () => {
   let gameRepository: jest.Mocked<GameRepository>;
@@ -18,7 +19,6 @@ describe('GameService', () => {
       update: jest.fn(),
       delete: jest.fn(),
       findById: jest.fn(),
-      findAll: jest.fn(),
       findPaginated: jest.fn()
     } as jest.Mocked<GameRepository>;
 
@@ -77,28 +77,52 @@ describe('GameService', () => {
         new Game({ name: 'Game 1' }),
         new Game({ name: 'Game 2' })
       ];
-      gameRepository.findAll.mockResolvedValue(games);
+      gameRepository.findPaginated.mockResolvedValue({
+        data: games,
+        total: games.length,
+        limit: 10,
+        offset: 0,
+        hasMore: false
+      });
+
+      const filters: PaginationDTO<GameFilterDTO> = {
+        data: { name: 'Game' },
+        limit: 10,
+        offset: 0
+      };
 
       // Act
-      const result = await gameService.getAllGames();
+      const result = await gameService.getAllGamesPaginated(filters);
 
       // Assert
-      expect(gameRepository.findAll).toHaveBeenCalled();
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Game 1');
-      expect(result[1].name).toBe('Game 2');
+      expect(gameRepository.findPaginated).toHaveBeenCalled();
+      expect(result.data.length).toBe(2);
+      expect(result.data[0].name).toBe('Game 1');
+      expect(result.data[1].name).toBe('Game 2');
     });
 
     it('should return empty array when no games exist', async () => {
       // Arrange
-      gameRepository.findAll.mockResolvedValue([]);
+      gameRepository.findPaginated.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 10,
+        offset: 0,
+        hasMore: false
+      });
+
+      const filters: PaginationDTO<GameFilterDTO> = {
+        data: { name: 'Game' },
+        limit: 10,
+        offset: 0
+      };
 
       // Act
-      const result = await gameService.getAllGames();
+      const result = await gameService.getAllGamesPaginated(filters);
 
       // Assert
-      expect(gameRepository.findAll).toHaveBeenCalled();
-      expect(result).toHaveLength(0);
+      expect(gameRepository.findPaginated).toHaveBeenCalled();
+      expect(result.data.length).toBe(0);
     });
   });
 

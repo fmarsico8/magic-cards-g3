@@ -38,21 +38,6 @@ export class CardBaseController {
     }
   }
 
-  public async getAllCardBases(req: Request, res: Response): Promise<void> {
-    try {
-      const gameId = req.query.gameId as string | undefined;
-      const cardBases = await this.cardBaseService.getAllCardBases(gameId);
-      res.status(200).json(cardBases);
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Game not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
-  }
 
   public async getAllCardBasesPaginated(req: Request, res: Response): Promise<void> {
     try {

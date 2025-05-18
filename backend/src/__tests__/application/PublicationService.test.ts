@@ -10,7 +10,7 @@ import { CreatePublicationDTO, PublicationFilterDTO, PublicationUpdatedDTO } fro
 import { StatusOffer } from '../../domain/entities/StatusOffer';
 import { Offer } from '../../domain/entities/Offer';
 import { StatusPublication } from '../../domain/entities/StatusPublication';
-
+import { PaginationDTO } from '@/application/dtos/PaginationDTO';
 jest.mock('../../infrastructure/repositories/Container', () => ({
   userRepository: { findById: jest.fn() },
   cardRepository: { findById: jest.fn() },
@@ -28,10 +28,8 @@ describe('PublicationService', () => {
     mockRepository = {
       save: jest.fn(),
       findById: jest.fn(),
-      findAll: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      find: jest.fn(),
       findPaginated: jest.fn()
     };
     publicationService = new PublicationService(mockRepository);
@@ -84,18 +82,32 @@ describe('PublicationService', () => {
   describe('getAllPublications', () => {
     it('should return filtered publications', async () => {
       const { user, publication } = createEntities();
-      const filters: PublicationFilterDTO = { ownerId: user.getId() };
+      const filters: PaginationDTO<PublicationFilterDTO> = {
+        data: { ownerId: user.getId() },
+        limit: 10,
+        offset: 0
+      };
 
       (userRepository.findById as jest.Mock).mockResolvedValue(user);
-      mockRepository.find.mockResolvedValue([publication]);
+      mockRepository.findPaginated.mockResolvedValue({
+        data: [publication],
+        total: 1,
+        limit: 10,
+        offset: 0,
+        hasMore: false,
+      });
 
-      const result = await publicationService.getAllPublications(filters);
-      expect(result).toHaveLength(1);
+      const result = await publicationService.getAllPublicationsPaginated(filters);
+      expect(result.data.length).toBe(1);
     });
 
     it('should throw if initialDate > endDate', async () => {
-      const filters: PublicationFilterDTO = { initialDate: new Date('2023-12-31'), endDate: new Date('2023-01-01') };
-      await expect(publicationService.getAllPublications(filters)).rejects.toThrow();
+      const filters: PaginationDTO<PublicationFilterDTO> = {
+        data: { initialDate: new Date('2023-12-31'), endDate: new Date('2023-01-01') },
+        limit: 10,
+        offset: 0
+      };
+      await expect(publicationService.getAllPublicationsPaginated(filters)).rejects.toThrow();
     });
   });
 

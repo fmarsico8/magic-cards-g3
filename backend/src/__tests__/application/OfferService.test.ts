@@ -12,6 +12,7 @@ import { StatusOffer } from "../../domain/entities/StatusOffer";
 import { StatusPublication } from "../../domain/entities/StatusPublication";
 import { UnauthorizedException } from "../../domain/entities/exceptions/exceptions";
 import { OfferFilterDTO } from "../../application/dtos/OfferDTO";
+import { PaginationDTO } from "@/application/dtos/PaginationDTO";
 // Mock the repositories
 jest.mock("../../infrastructure/repositories/Container", () => ({
   userRepository: {
@@ -70,7 +71,6 @@ describe('OfferService', () => {
       findById: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      find: jest.fn(),
       findPaginated: jest.fn()
     };
     
@@ -509,31 +509,51 @@ describe('OfferService', () => {
   describe('getAllOffers', () => {
     it('should return all offers with filters', async () => {
       // Arrange
-      const filters: OfferFilterDTO = { ownerId: testUser1.getId(), publicationId: 'valid-pub-id', status: StatusOffer.PENDING };
+      const filters: PaginationDTO<OfferFilterDTO> = {
+        data: { ownerId: testUser1.getId(), publicationId: 'valid-pub-id', status: StatusOffer.PENDING },
+        limit: 10,
+        offset: 0
+      };
       const mockOffers = [new Offer({ offerOwner: testUser1, moneyOffer: 100, publication: testPublication })];
       
-      (mockOfferRepository.find as jest.Mock).mockResolvedValue(mockOffers);
+      (mockOfferRepository.findPaginated as jest.Mock).mockResolvedValue({
+        data: mockOffers,
+        total: mockOffers.length,
+        limit: 10,
+        offset: 0,
+        hasMore: false
+      });
 
       // Act
-      const result = await offerService.getAllOffer(filters);
+      const result = await offerService.getAllOfferPaginated(filters);
 
       // Assert
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe(mockOffers[0].getId());
+      expect(result.data.length).toBe(1);
+      expect(result.data[0].id).toBe(mockOffers[0].getId());
     });
 
     it('should return all offers without filters', async () => {
       // Arrange
       const mockOffers = [new Offer({ offerOwner: testUser1, moneyOffer: 100, publication: testPublication })];
       
-      (mockOfferRepository.find as jest.Mock).mockResolvedValue(mockOffers);
+      (mockOfferRepository.findPaginated as jest.Mock).mockResolvedValue({
+        data: mockOffers,
+        total: mockOffers.length,
+        limit: 10,
+        offset: 0,
+        hasMore: false
+      });
 
       // Act
-      const result = await offerService.getAllOffer({}); // No filters
+      const result = await offerService.getAllOfferPaginated ({
+        data: {},
+        limit: 10,
+        offset: 0
+      }); // No filters
 
       // Assert
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe(mockOffers[0].getId());
+      expect(result.data.length).toBe(1);
+      expect(result.data[0].id).toBe(mockOffers[0].getId());
     });
   });
 

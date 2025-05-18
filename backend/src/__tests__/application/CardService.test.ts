@@ -1,11 +1,12 @@
 import { CardService } from "../../application/services/CardService";
-import { CreateCardDTO, CardResponseDTO } from "../../application/dtos/CardsDTO";
+import { CreateCardDTO, CardResponseDTO, CardFilterDTO } from "../../application/dtos/CardsDTO";
 import { CardRepository } from "../../domain/repositories/CardRepository";
 import { User } from "../../domain/entities/User";
 import { CardBase } from "../../domain/entities/CardBase";
 import { Game } from "../../domain/entities/Game";
 import { Card } from "../../domain/entities/Card";
 import { cardBaseRepository, userRepository, statisticsRepository } from "../../infrastructure/provider/Container";
+import { PaginationDTO } from "@/application/dtos/PaginationDTO";
 
 // Mock the repositories
 jest.mock("../../infrastructure/repositories/Container", () => ({
@@ -39,7 +40,6 @@ describe('CardService', () => {
     
     mockCardRepository = {
       save: jest.fn(),
-      find: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -87,16 +87,26 @@ describe('CardService', () => {
   });
 
   it('should return all cards with filters', async () => {
-    const filters = { ownerId: testUser.getId() };
+    const filters: PaginationDTO<CardFilterDTO> = {
+      data: { ownerId: testUser.getId() },
+      limit: 10,
+      offset: 0
+    };
     const mockCards = [new Card({ owner: testUser, cardBase: testCardBase, statusCard: 100 })];
 
-    (mockCardRepository.find as jest.Mock).mockResolvedValue(mockCards);
+    (mockCardRepository.findPaginated as jest.Mock).mockResolvedValue({
+      data: mockCards,
+      total: mockCards.length,
+      limit: 10,
+      offset: 0,
+      hasMore: false
+    });
     (userRepository.findById as jest.Mock).mockResolvedValue(testUser);
 
-    const result = await cardService.getAllCards(filters);
+    const result = await cardService.getAllCardsPaginated(filters);
 
     expect(result).toHaveLength(1);
-    expect(result[0].owner.ownerId).toBe(testUser.getId());
+    expect(result.data[0].owner.ownerId).toBe(testUser.getId());
   });
 
   it('should return a card by ID', async () => {

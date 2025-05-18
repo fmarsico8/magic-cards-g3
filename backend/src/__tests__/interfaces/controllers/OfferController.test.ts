@@ -116,9 +116,9 @@ describe('OfferController', () => {
 
             mockOfferService.getAllOffer.mockResolvedValue(expectedOffers);
 
-            await offerController.getAllOffers(mockRequest as Request, mockResponse as Response);
+            await offerController.getAllOffersPaginated(mockRequest as Request, mockResponse as Response);
 
-            expect(mockOfferService.getAllOffer).toHaveBeenCalledWith(filters);
+            expect(mockOfferService.getAllOfferPaginated).toHaveBeenCalledWith(filters);
             expect(mockResponse.status).toHaveBeenCalledWith(200);
             expect(mockResponse.json).toHaveBeenCalledWith(expectedOffers);
         });
@@ -127,7 +127,7 @@ describe('OfferController', () => {
             const error = new Error('Test error');
             mockOfferService.getAllOffer.mockRejectedValue(error);
 
-            await offerController.getAllOffers(mockRequest as Request, mockResponse as Response);
+            await offerController.getAllOffersPaginated(mockRequest as Request, mockResponse as Response);
 
             expect(mockResponse.status).toHaveBeenCalledWith(400);
             expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Test error' });

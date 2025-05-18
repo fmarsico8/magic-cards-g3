@@ -9,7 +9,6 @@ export interface CardRepository {
     delete(id: string): Promise<boolean>;
     findById(id: string): Promise<Card>;
     findByCardsByIds(ids?: string[]): Promise<Card[] | undefined>;
-    find(filters: CardFilterDTO): Promise<Card[]>;
     findPaginated(filters: PaginationDTO<CardFilterDTO>): Promise<PaginatedResponseDTO<Card>>;
 }
     

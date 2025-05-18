@@ -3,16 +3,13 @@ import { CardBaseRepository } from '../../domain/repositories/CardBaseRepository
 import { GameRepository } from '../../domain/repositories/GameRepository';
 import { CreateCardBaseDTO, UpdateCardBaseDTO, CardBaseResponseDTO, CardBaseFilterDTO } from '../dtos/CardBaseDTO';
 import { PaginationDTO, PaginatedResponseDTO } from '../dtos/PaginationDTO';
-import { GameService } from './GameService';
 
 export class CardBaseService {
-  private gameService: GameService;
 
   constructor(
     private readonly cardBaseRepository: CardBaseRepository,
     private readonly gameRepository: GameRepository
   ) {
-    this.gameService = new GameService(gameRepository);
   }
 
   public async createCardBase(cardBaseData: CreateCardBaseDTO): Promise<CardBaseResponseDTO> {
@@ -41,22 +38,9 @@ export class CardBaseService {
     return this.toCardBaseResponseDTO(cardBase);
   }
 
-  public async getAllCardBases(gameId?: string): Promise<CardBaseResponseDTO[]> {
-    // If gameId is provided, filter by game
-    if (gameId) {
-      const game = await this.gameRepository.findById(gameId);
-      
-      if (!game) {
-        throw new Error('Game not found');
-      }
-      
-      const cardBases = await this.cardBaseRepository.findByGame(game);
-      return cardBases.map(cardBase => this.toCardBaseResponseDTO(cardBase));
-    }
-    
-    // Otherwise, return all card bases
-    const cardBases = await this.cardBaseRepository.findAll();
-    return cardBases.map(cardBase => this.toCardBaseResponseDTO(cardBase));
+  public async getAllCardBases(): Promise<CardBaseResponseDTO[]> {
+    const cardBases = await this.cardBaseRepository.findPaginated({ data: {}, limit: 100, offset: 0 });
+    return cardBases.data.map(cardBase => this.toCardBaseResponseDTO(cardBase));
   }
 
   public async getAllCardBasesPaginated(filters: PaginationDTO<CardBaseFilterDTO>): Promise<PaginatedResponseDTO<CardBaseFilterDTO>> {

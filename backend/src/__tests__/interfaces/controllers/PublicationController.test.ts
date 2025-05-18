@@ -3,6 +3,7 @@ import { PublicationController } from '../../../interfaces/controllers/Publicati
 import { PublicationService } from '../../../application/services/PublicationService';
 import { CreatePublicationDTO, PublicationFilterDTO, PublicationUpdatedDTO, PublicationResponseDTO } from '../../../application/dtos/PublicationDTO';
 import { PublicationRepository } from '../../../domain/repositories/PublicationRepository';
+import { PaginatedResponseDTO } from '../../../application/dtos/PaginationDTO';
 
 // Mock the PublicationService
 jest.mock('../../../application/services/PublicationService');
@@ -22,10 +23,8 @@ describe('PublicationController', () => {
         const mockRepository: PublicationRepository = {
             save: jest.fn(),
             findById: jest.fn(),
-            findAll: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
-            find: jest.fn(),
             findPaginated: jest.fn()
         };
 
@@ -134,11 +133,12 @@ describe('PublicationController', () => {
                 maxValue: '100'
             };
 
-            const expectedPublications: PublicationResponseDTO[] = [
-                {
-                    id: 'pub1',
-                    card:
+            const expectedPublications: PaginatedResponseDTO<PublicationResponseDTO> = {
+                data: [
                     {
+                        id: 'pub1',
+                        card:
+                        {
                         cardId: 'test-card-id',
                         urlImage: 'url',
                     },
@@ -161,25 +161,30 @@ describe('PublicationController', () => {
                     status: "Open",
                     createdAt: new Date()
                 }
-            ];
+            ],
+            total: 2,
+            offset: 0,
+            limit: 10,
+            hasMore: false
+            };
 
-            mockPublicationService.getAllPublications.mockResolvedValue(expectedPublications);
+            mockPublicationService.getAllPublicationsPaginated.mockResolvedValue(expectedPublications);
 
-            await publicationController.getAllPublications(
+            await publicationController.getAllPublicationsPaginated(
                 mockRequest as Request,
                 mockResponse as Response
             );
 
-            expect(mockPublicationService.getAllPublications).toHaveBeenCalledWith(filters);
+            expect(mockPublicationService.getAllPublicationsPaginated).toHaveBeenCalledWith(filters);
             expect(mockResponse.status).toHaveBeenCalledWith(200);
             expect(mockResponse.json).toHaveBeenCalledWith(expectedPublications);
         });
 
         it('should handle errors when getting publications', async () => {
             const error = new Error('Test error');
-            mockPublicationService.getAllPublications.mockRejectedValue(error);
+            mockPublicationService.getAllPublicationsPaginated.mockRejectedValue(error);
 
-            await publicationController.getAllPublications(
+            await publicationController.getAllPublicationsPaginated(
                 mockRequest as Request,
                 mockResponse as Response
             );

@@ -27,27 +27,6 @@ export class CardController {
         }
     }
 
-    public async getAllCards(req: Request, res: Response): Promise<void> {
-        try {
-            const filters: CardFilterDTO = {
-                name: req.query.name ? (req.query.name as string) : undefined,
-                game: req.query.game ? (req.query.game as string) : undefined,
-                ownerId: req.query.ownerId as string
-            };
-        
-            const cards = await this.cardService.getAllCards(filters);
-            res.status(200).json(cards);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
-    }
-
     public async getAllCardsPaginated(req: Request, res: Response): Promise<void> {
         try {
             const userId = req.user?.userId;

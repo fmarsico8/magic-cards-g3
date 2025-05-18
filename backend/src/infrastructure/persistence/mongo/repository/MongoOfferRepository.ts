@@ -1,15 +1,16 @@
 import { OfferRepository } from "../../../../domain/repositories/OfferRepository";
 import { Offer } from "../../../../domain/entities/Offer";
-import { OfferModel } from "../models/OfferModel";
+import { OfferModel, IOffer } from "../models/OfferModel";
 import { OfferMapper } from "../mappers/offer.mapper";
 import { OfferFilterDTO } from "../../../../application/dtos/OfferDTO";
 import { PaginatedResponseDTO, PaginationDTO } from "../../../../application/dtos/PaginationDTO";
-
-import {
-  userRepository,
-  cardRepository,
-  publicationRepository
-} from "../../../../infrastructure/provider/Container";
+import { FilterQuery } from "mongoose";
+import { IUser } from "../models/UserModel";
+import { ICard } from "../models/CardModel";
+import { IPublication } from "../models/PublicationModel";
+import { ICardBase } from "../models/CardBaseModel";
+import { IGame } from "../models/GameModel";
+import { Types } from "mongoose";
 
 export class MongoOfferRepository implements OfferRepository {
   private offerModel: OfferModel;
@@ -38,71 +39,132 @@ export class MongoOfferRepository implements OfferRepository {
   async findById(id: string, skipPublication = false): Promise<Offer | null> {
     const doc = await this.offerModel.findById(id);
     if (!doc) return null;
-  
-    const owner = await userRepository.findById(doc.offerOwnerId);
-    if (!owner) return null;
-  
-    const cards = doc.cardIds?.length
-      ? await cardRepository.findByCardsByIds(doc.cardIds)
-      : [];
-  
-    const publication = skipPublication
-      ? undefined
-      : await publicationRepository.findById(doc.publicationId);
-  
-    if (!skipPublication && !publication) return null;
-  
-    return OfferMapper.toEntity(doc, owner, cards || [], publication || undefined);
-  }
+    
+    const populatedDoc = await this.offerModel.populate(doc, [
+      { path: 'offerOwnerId' },
+      { 
+        path: 'cardIds',                              
+        populate: { path: 'cardBaseId', populate: { path: 'gameId' } }              
+      },
+      ...(skipPublication ? [] : [{ 
+        path: 'publicationId',                         
+        populate: [
+          { path: 'ownerId' },
+          { 
+            path: 'cardId',
+            populate: { path: 'cardBaseId', populate: { path: 'gameId' } }
+          }
+        ]
+      }])
+    ]) as IOffer & {
+      offerOwnerId: IUser;
+      cardIds: (ICard & { cardBaseId: ICardBase & { gameId: IGame }})[];
+      publicationId: any;
+    };
 
-  async find(filters: OfferFilterDTO): Promise<Offer[]> {
-    // Use Mongoose query instead of in-memory filtering
-    const docs = await this.offerModel.findWithFilters({
-      ownerId: filters.ownerId,
-      status: filters.status,
-      publicationId: filters.publicationId
-    });
-
-    const offers: Offer[] = [];
-
-    for (const doc of docs) {
-      const offer = await this.findById(doc._id);
-      if (offer) {
-        if (!filters.userId || offer.getPublication().getOwner().getId() === filters.userId) {
-          offers.push(offer);
-        }
-      }
-    }
-
-    return offers;
+    return OfferMapper.toEntity(
+      populatedDoc,
+      populatedDoc.offerOwnerId,
+      populatedDoc.cardIds,
+      populatedDoc.publicationId
+    );
   }
 
   async findPaginated(filters: PaginationDTO<OfferFilterDTO>): Promise<PaginatedResponseDTO<Offer>> {
-    const filteredOffers = await this.find(filters.data);
-    const total = filteredOffers.length;
-    const offset = filters.offset || 0;
-    const limit = filters.limit || 10;
-    const data = filteredOffers.slice(offset, offset + limit);
+    console.log('Filters received:', JSON.stringify(filters, null, 2));
+    
+    const matchConditions: any = {};
+    
+    if (filters.data?.userId) {
+      matchConditions["publication.ownerId"] = new Types.ObjectId(filters.data.userId);
+    }
+    if (filters.data?.ownerId) {
+      matchConditions.offerOwnerId = new Types.ObjectId(filters.data.ownerId);
+    }
+    if (filters.data?.status) {
+      matchConditions.statusOffer = filters.data.status;
+    }
+    if (filters.data?.publicationId) {
+      matchConditions.publicationId = new Types.ObjectId(filters.data.publicationId);
+    }
+
+
+    const { docs, total } = await this.offerModel.aggregatePaginated({
+      lookups: [
+        {
+          from: "publications",
+          localField: "publicationId",
+          foreignField: "_id",
+          as: "publication",
+          unwind: true,
+          preserveNullAndEmptyArrays: true
+        }
+      ],
+      match: matchConditions,
+      sort: { createdAt: -1 },
+      offset: filters.offset || 0,
+      limit: filters.limit || 10
+    });
+
+
+    const populatedDocs = await this.offerModel.populate(docs, [
+      { path: 'offerOwnerId' },                       
+      { 
+        path: 'cardIds',                              
+        populate: { path: 'cardBaseId', populate: { path: 'gameId' } }              
+      },
+      { 
+        path: 'publicationId',                         
+        populate: [
+          { path: 'ownerId' },
+          { 
+            path: 'cardId',
+            populate: { path: 'cardBaseId', populate: { path: 'gameId' } }
+          }
+        ]
+      }
+    ]) as (IOffer & {
+      offerOwnerId: IUser;
+      cardIds: (ICard & { cardBaseId: ICardBase & { gameId: IGame }})[];
+      publicationId: any;
+    })[];
+
+    const offers = populatedDocs.map(doc => 
+      OfferMapper.toEntity(doc, doc.offerOwnerId, doc.cardIds, doc.publicationId)
+    );
 
     return {
-      data,
+      data: offers,
       total,
-      limit,
-      offset,
-      hasMore: offset + limit < total,
+      limit: filters.limit || 10,
+      offset: filters.offset || 0,
+      hasMore: (filters.offset || 0) + (filters.limit || 10) < total,
     };
   }
 
   async findByOffersByIds(ids: string[]): Promise<Offer[] | undefined> {
-    // Use Mongoose query instead of in-memory filtering
     const docs = await this.offerModel.findByIds(ids);
     if (!docs.length) return undefined;
-    
-    const offers: Offer[] = [];
-    for (const doc of docs) {
-      const offer = await this.findById(doc._id);
-      if (offer) offers.push(offer);
-    }
+
+    const populatedDocs = await this.offerModel.populate(docs, [
+      { path: 'offerOwnerId' },                       
+      { 
+        path: 'cardIds',                              
+        populate: { path: 'cardBaseId', populate: { path: 'gameId' } }              
+      },
+      { 
+        path: 'publicationId',                         
+        populate: { path: 'cardId' }                   
+      }
+    ]) as (IOffer & {
+      offerOwnerId: IUser;
+      cardIds: (ICard & { cardBaseId: ICardBase & { gameId: IGame }})[];
+      publicationId: any;
+    })[];
+
+    const offers = populatedDocs.map(doc => 
+      OfferMapper.toEntity(doc, doc.offerOwnerId, doc.cardIds, doc.publicationId)
+    );
 
     return offers.length ? offers : undefined;
   }

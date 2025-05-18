@@ -4,6 +4,11 @@ export interface CreateUserDTO {
   password: string;
 }
 
+export interface UserFilterDTO {
+  name?: string;
+  email?: string;
+}
+
 export interface UpdateUserDTO {
   name?: string;
   email?: string;

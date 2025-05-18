@@ -25,9 +25,9 @@ export class GameService {
     return this.toGameResponseDTO(game);
   }
 
-  public async getAllGames(): Promise<GameResponseDTO[]> {  
-    const games = await this.gameRepository.findAll();
-    return games.map(game => this.toGameResponseDTO(game));
+  public async getAllGames(): Promise<GameResponseDTO[]> {
+    const games = await this.gameRepository.findPaginated({ data: {}, limit: 100, offset: 0 });
+    return games.data.map(game => this.toGameResponseDTO(game));
   }
 
   public async getAllGamesPaginated(filters: PaginationDTO<GameFilterDTO>): Promise<PaginatedResponseDTO<GameResponseDTO>> {

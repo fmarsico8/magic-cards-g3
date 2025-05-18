@@ -50,14 +50,6 @@ export class OfferService {
         return this.toOfferResponseDTO(offer);
     }
 
-    public async getAllOffer(filters: OfferFilterDTO): Promise<OfferResponseDTO[]> {
-        if(filters.ownerId){
-            await this.userService.getSimpleUser(filters.ownerId)
-        }
-        const offers = await this.offerRepository.find(filters);
-        return offers.map(offer => this.toOfferResponseDTO(offer));
-    }
-
     public async getAllOfferPaginated(filters: PaginationDTO<OfferFilterDTO>): Promise<PaginatedResponseDTO<OfferResponseDTO>> {
         if(filters.data.ownerId){
             await this.userService.getSimpleUser(filters.data.ownerId)
@@ -81,6 +73,11 @@ export class OfferService {
             return null;
         }
         return this.toOfferResponseDTO(offer);
+    }
+
+    public async getAllOffer(): Promise<OfferResponseDTO[]> {
+        const offers = await this.offerRepository.findPaginated({ data: {}, limit: 100, offset: 0 });
+        return offers.data.map(offer => this.toOfferResponseDTO(offer));
     }
 
     public async updateOffer(offerId: string, offerData: OfferUpdatedDTO): Promise<OfferResponseDTO> {

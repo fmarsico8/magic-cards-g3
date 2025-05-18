@@ -7,6 +7,5 @@ export interface GameRepository {
     update(game: Game): Promise<Game>;
     delete(id: string): Promise<boolean>;
     findById(id: string): Promise<Game | undefined>;
-    findAll(): Promise<Game[]>;
     findPaginated(filters: PaginationDTO<GameFilterDTO>): Promise<PaginatedResponseDTO<Game>>;
 } 

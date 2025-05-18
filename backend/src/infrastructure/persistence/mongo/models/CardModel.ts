@@ -1,16 +1,18 @@
 import { SchemaFactory } from './SchemaFactory';
 import { BaseModel, IBaseDocument } from './BaseModel';
+import { SchemaTypes } from 'mongoose';
+import { Types } from 'mongoose';
 
 export interface ICard extends IBaseDocument {
-  ownerId: string;
-  cardBaseId: string;
+  ownerId: Types.ObjectId;
+  cardBaseId: Types.ObjectId;
   statusCard: number;
   urlImage?: string;
 }
 
 const cardSchema = SchemaFactory.createBaseSchema({
-  ownerId: { type: String, required: true },
-  cardBaseId: { type: String, required: true },
+  ownerId: { type: SchemaTypes.ObjectId, required: true, ref: 'User' },
+  cardBaseId: { type: SchemaTypes.ObjectId, required: true, ref: 'CardBase' },
   statusCard: { type: Number, required: true },
   urlImage: { type: String }
 });

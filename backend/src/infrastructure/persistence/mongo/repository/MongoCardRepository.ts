@@ -1,10 +1,15 @@
 import { CardRepository } from "../../../../domain/repositories/CardRepository";
 import { Card } from "../../../../domain/entities/Card";
-import { CardModel } from "../models/CardModel";
+import { CardModel, ICard } from "../models/CardModel";
 import { CardMapper } from "../mappers/card.mapper";
 import { PaginationDTO, PaginatedResponseDTO } from "../../../../application/dtos/PaginationDTO";
 import { CardFilterDTO } from "../../../../application/dtos/CardsDTO";
-import { userRepository, cardBaseRepository } from "../../../../infrastructure/provider/Container";
+import { User } from "../../../../domain/entities/User";
+import { CardBase } from "../../../../domain/entities/CardBase";
+import { Game } from "@/domain/entities/Game";
+import { IUser } from "../models/UserModel";
+import { ICardBase } from "../models/CardBaseModel";
+import { IGame } from "../models/GameModel";
 
 export class MongoCardRepository implements CardRepository {
   private cardModel: CardModel;
@@ -33,30 +38,21 @@ export class MongoCardRepository implements CardRepository {
   async findById(id: string): Promise<Card> {
     const doc = await this.cardModel.findById(id);
     if (!doc) throw new Error(`Card not found (id: ${id})`);
-  
-    const owner = await userRepository.findById(doc.ownerId);
-    if (!owner) throw new Error(`User not found (id: ${doc.ownerId})`);
-  
-    const cardBase = await cardBaseRepository.findById(doc.cardBaseId);
-    if (!cardBase) throw new Error(`CardBase not found (id: ${doc.cardBaseId})`);
-  
-    return CardMapper.toEntity(doc, owner, cardBase);
+    
+    const populatedDoc = await this.cardModel.populate(doc, [
+      { path: 'ownerId' },
+      {
+        path: 'cardBaseId',
+        populate: {
+          path: 'gameId',
+          model: 'Game'
+        }
+      }
+    ]) as ICard & { ownerId: IUser; cardBaseId: ICardBase & { gameId: IGame } };
+    
+    return CardMapper.toEntity(populatedDoc, populatedDoc.ownerId, populatedDoc.cardBaseId);
   }
 
-  async find(filters: CardFilterDTO): Promise<Card[]> {
-    const docs = filters.ownerId 
-      ? await this.cardModel.findByOwnerId(filters.ownerId)
-      : await this.cardModel.findAll();
-
-    return Promise.all(
-      docs.map(async doc => {
-        const owner = await userRepository.findById(doc.ownerId);
-        const cardBase = await cardBaseRepository.findById(doc.cardBaseId);
-        if (!owner || !cardBase) throw new Error("Related entity not found");
-        return CardMapper.toEntity(doc, owner, cardBase);
-      })
-    );
-  }
 
   async findPaginated(filters: PaginationDTO<CardFilterDTO>): Promise<PaginatedResponseDTO<Card>> {
     const query: any = {};
@@ -70,14 +66,20 @@ export class MongoCardRepository implements CardRepository {
       filters.limit || 10
     );
 
-    const cards: Card[] = [];
-    for (const doc of docs) {
-      const owner = await userRepository.findById(doc.ownerId);
-      const cardBase = await cardBaseRepository.findById(doc.cardBaseId);
-      if (owner && cardBase) {
-        cards.push(CardMapper.toEntity(doc, owner, cardBase));
+    const populatedDocs = await this.cardModel.populate(docs, [
+      { path: 'ownerId' },
+      {
+        path: 'cardBaseId',
+        populate: {
+          path: 'gameId',
+          model: 'Game'
+        }
       }
-    }
+    ]) as (ICard & { ownerId: IUser; cardBaseId: ICardBase & { gameId: IGame } })[];
+
+    const cards = populatedDocs.map(doc => 
+      CardMapper.toEntity(doc, doc.ownerId, doc.cardBaseId)
+    );
 
     return {
       data: cards,
@@ -92,14 +94,20 @@ export class MongoCardRepository implements CardRepository {
     const docs = await this.cardModel.findByIds(ids);
     if (!docs.length) return undefined;
 
-    const cards: Card[] = [];
-    for (const doc of docs) {
-      const owner = await userRepository.findById(doc.ownerId);
-      const cardBase = await cardBaseRepository.findById(doc.cardBaseId);
-      if (owner && cardBase) {
-        cards.push(CardMapper.toEntity(doc, owner, cardBase));
+    const populatedDocs = await this.cardModel.populate(docs, [
+      { path: 'ownerId' },
+      {
+        path: 'cardBaseId',
+        populate: {
+          path: 'gameId',
+          model: 'Game'
+        }
       }
-    }
+    ]) as (ICard & { ownerId: IUser; cardBaseId: ICardBase & { gameId: IGame } })[];
+
+    const cards = populatedDocs.map(doc => 
+      CardMapper.toEntity(doc, doc.ownerId, doc.cardBaseId)
+    );
 
     return cards.length > 0 ? cards : undefined;
   }

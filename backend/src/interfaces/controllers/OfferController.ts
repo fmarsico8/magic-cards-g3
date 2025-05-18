@@ -28,27 +28,6 @@ export class OfferController {
         }
     }
 
-    public async getAllOffers(req: Request, res: Response): Promise<void> {
-        try {
-            const filters: OfferFilterDTO = {
-                ownerId: req.query.ownerId ? (req.query.ownerId as string) : undefined,
-                publicationId: req.query.publicationId ? (req.query.publicationId as string) : undefined,
-                status: req.query.status ? (req.query.status as string) : undefined,
-            };
-
-            const offers = await this.offerService.getAllOffer(filters);
-            res.status(200).json(offers);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
-    }
-
 
     public async getAllOffersPaginated(req: Request, res: Response): Promise<void> {
         try {

@@ -46,13 +46,6 @@ export class PublicationService {
         return this.toPublicationResponseDTO(publication);
     }
 
-    public async getAllPublications(filters: PublicationFilterDTO): Promise<PublicationResponseDTO[]> {
-        if (filters.ownerId) {
-            await this.userService.getSimpleUser(filters.ownerId);
-        }
-        const publications = await this.publicationRepository.find(filters);
-        return publications.map(pub => this.toPublicationResponseDTO(pub));
-    }
 
     public async getAllPublicationsPaginated(filters: PaginationDTO<PublicationFilterDTO>): Promise<PaginatedResponseDTO<PublicationResponseDTO>> {
         if (filters.data.ownerId) {
@@ -71,6 +64,11 @@ export class PublicationService {
     public async getPublication(id: string): Promise<PublicationResponseDTO> {
         const publication = await this.getPublicationById(id);
         return this.toPublicationResponseDTO(publication);
+    }
+
+    public async getAllPublications(): Promise<PublicationResponseDTO[]> {
+        const publications = await this.publicationRepository.findPaginated({ limit: 100, offset: 0 });
+        return publications.data.map(pub => this.toPublicationResponseDTO(pub));
     }
 
     public async updatePublication(id: string, publicationData: PublicationUpdatedDTO): Promise<PublicationResponseDTO> {

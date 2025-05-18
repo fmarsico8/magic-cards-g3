@@ -1,22 +1,24 @@
 import { SchemaFactory } from './SchemaFactory';
 import { BaseModel, IBaseDocument } from './BaseModel';
 import { StatusPublication } from '@/domain/entities/StatusPublication';
+import { SchemaTypes } from 'mongoose';
+import { Types } from 'mongoose';
 
 export interface IPublication extends IBaseDocument {
-  ownerId: string;
-  cardId: string;
+  ownerId: Types.ObjectId;
+  cardId: Types.ObjectId;
   valueMoney?: number;
-  cardExchangeIds: string[];
-  offerIds: string[];
+  cardExchangeIds: Types.ObjectId[];
+  offerIds: Types.ObjectId[];
   statusPublication: StatusPublication;
 }
 
 const publicationSchema = SchemaFactory.createBaseSchema({
-  ownerId: { type: String, required: true },
-  cardId: { type: String, required: true },
+  ownerId: { type: SchemaTypes.ObjectId, required: true, ref: 'User' },
+  cardId: { type: SchemaTypes.ObjectId, required: true, ref: 'Card' },
   valueMoney: { type: Number },
-  cardExchangeIds: [{ type: String }],
-  offerIds: [{ type: String }],
+  cardExchangeIds: [{ type: SchemaTypes.ObjectId, ref: 'CardBase' }],
+  offerIds: [{ type: SchemaTypes.ObjectId, ref: 'Offer' }],
   statusPublication: { type: String, enum: ['Open', 'Closed'], required: true }
 });
 
@@ -27,47 +29,4 @@ export class PublicationModel extends BaseModel<IPublication> {
     super(PublicationModelClass);
   }
   
-  async findWithFilters(filters: {
-    status?: string;
-    ownerId?: string;
-    excludeId?: string;
-    initialDate?: Date;
-    endDate?: Date;
-    minValue?: number;
-    maxValue?: number;
-  }): Promise<IPublication[]> {
-    const query: any = {};
-    
-    if (filters.status) {
-      query.statusPublication = filters.status;
-    }
-    
-    if (filters.ownerId) {
-      query.ownerId = filters.ownerId;
-    } else if (filters.excludeId) {
-      query.ownerId = { $ne: filters.excludeId };
-    }
-    
-    if (filters.initialDate || filters.endDate) {
-      query.createdAt = {};
-      if (filters.initialDate) {
-        query.createdAt.$gte = filters.initialDate;
-      }
-      if (filters.endDate) {
-        query.createdAt.$lte = filters.endDate;
-      }
-    }
-    
-    if (filters.minValue || filters.maxValue) {
-      query.valueMoney = {};
-      if (filters.minValue) {
-        query.valueMoney.$gte = filters.minValue;
-      }
-      if (filters.maxValue) {
-        query.valueMoney.$lte = filters.maxValue;
-      }
-    }
-    
-    return this.model.find(query).exec();
-  }
 }

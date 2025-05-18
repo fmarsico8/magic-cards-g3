@@ -3,6 +3,7 @@ import { CardController } from '../../../interfaces/controllers/CardController';
 import { CardService } from '../../../application/services/CardService';
 import { CreateCardDTO, CardUpdatedDTO, CardResponseDTO } from '../../../application/dtos/CardsDTO';
 import { cardRepository } from '../../../infrastructure/provider/Container';
+import { PaginatedResponseDTO } from '@/application/dtos/PaginationDTO';
 
 // Mock the repositories
 jest.mock('../../../infrastructure/repositories/Container', () => ({
@@ -106,11 +107,12 @@ describe('CardController', () => {
 
             mockRequest.query = filters;
 
-            const expectedCards: CardResponseDTO[] = [
-                {
-                    id: 'card1',
-                    urlImage: 'http://example.com/image1.png',
-                    cardBase: {
+            const expectedCards: PaginatedResponseDTO<CardResponseDTO> = {
+                data: [
+                    {
+                        id: 'card1',
+                        urlImage: 'http://example.com/image1.png',
+                        cardBase: {
                         Id: 'test-card-base-id',
                         Name: 'Test Card Base'
                     },
@@ -124,22 +126,27 @@ describe('CardController', () => {
                     },
                     createdAt: new Date()
                 }
-            ];
+            ],
+            total: 2,
+            offset: 0,
+            limit: 10,
+            hasMore: false
+            };
 
-            mockCardService.getAllCards.mockResolvedValue(expectedCards);
+            mockCardService.getAllCardsPaginated.mockResolvedValue(expectedCards);
 
-            await cardController.getAllCards(mockRequest as Request, mockResponse as Response);
+            await cardController.getAllCardsPaginated(mockRequest as Request, mockResponse as Response);
 
-            expect(mockCardService.getAllCards).toHaveBeenCalledWith(filters);
+            expect(mockCardService.getAllCardsPaginated).toHaveBeenCalledWith(filters);
             expect(mockResponse.status).toHaveBeenCalledWith(200);
             expect(mockResponse.json).toHaveBeenCalledWith(expectedCards);
         });
 
         it('should handle errors when getting cards', async () => {
             const error = new Error('Test error');
-            mockCardService.getAllCards.mockRejectedValue(error);
+            mockCardService.getAllCardsPaginated.mockRejectedValue(error);
 
-            await cardController.getAllCards(mockRequest as Request, mockResponse as Response);
+            await cardController.getAllCardsPaginated(mockRequest as Request, mockResponse as Response);
 
             expect(mockResponse.status).toHaveBeenCalledWith(400);
             expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Test error' });
