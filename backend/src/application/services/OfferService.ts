@@ -98,7 +98,6 @@ export class OfferService {
             await Promise.all(cards.map(card => cardRepository.update(card)));
             await publicationRepository.update(publication);
             await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_ACCEPTED, new Date(), 1));
-
             offers.forEach(offer => this.offerRepository.update(offer));
             return this.toOfferResponseDTO(offer);
         }

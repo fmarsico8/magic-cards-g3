@@ -84,7 +84,7 @@ export class Publication extends Ownable {
         throw new Error("Publication already closed");
       }      
       this.updatedAt = new Date();
-      const cards = offer.acceptOffer(this.getOwner());
+      const cards = [...offer.acceptOffer(this.getOwner())];
       const offers = this.closePublication(offer);
       offers.push(offer);
       this.card.setOwner(offer.getOfferOwner());
