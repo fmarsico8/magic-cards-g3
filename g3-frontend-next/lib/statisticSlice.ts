@@ -1,15 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import { StatisticType, type RangeStatisticDTO } from "@/types/statistic"
+import { StatisticResponseDTO, StatisticType, type RangeStatisticDTO } from "@/types/statistic"
 import { statisticsService } from "@/services/statistics-service"
 import Promise from "bluebird"
 
-interface StatisticData {
-  date: string
-  value: number
-}
 
 interface StatisticsState {
-  statistics: Record<StatisticType, StatisticData[]>
+  statistics: Record<StatisticType, StatisticResponseDTO[]>
   isLoading: boolean
   error: string | null
   selectedType: StatisticType | null
@@ -39,7 +35,7 @@ export const statisticSlice = createSlice({
     },
     fetchStatisticsSuccess: (
       state,
-      action: PayloadAction<{ type: StatisticType; data: StatisticData[] }>
+      action: PayloadAction<{ type: StatisticType; data: StatisticResponseDTO[] }>
     ) => {
       const { type, data } = action.payload
       state.statistics[type] = data

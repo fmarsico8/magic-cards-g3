@@ -2,6 +2,7 @@ export interface CreateUserDTO {
   name: string;
   email: string;
   password: string;
+  role?: string;
 }
 
 export interface UpdateUserDTO {
@@ -16,4 +17,5 @@ export interface UserResponseDTO {
   email: string;
   createdAt: Date;
   updatedAt: Date;
+  role?: string;
 } 
