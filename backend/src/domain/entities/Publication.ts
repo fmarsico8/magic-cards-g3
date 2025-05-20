@@ -5,6 +5,7 @@ import { CardBase } from "./CardBase";
 import { Ownable } from "./Ownable";
 import { StatusPublication } from "./StatusPublication";
 import { StatusOffer } from "./StatusOffer";
+import { generateUUID } from "./utils";
 
 export interface PublicationProps {
     id?: string;
@@ -30,7 +31,7 @@ export class Publication extends Ownable {
 
     constructor(props: PublicationProps) {
       super(props.owner);
-      this.id = props.id || this.generateId();
+      this.id = props.id || generateUUID();
       this.statusPublication = props.statusPublication || StatusPublication.OPEN;
       this.cardExchange = props.cardExchange;
       this.offersExisting = props.offersExisting || [];
@@ -39,10 +40,6 @@ export class Publication extends Ownable {
       this.createdAt = props.createdAt || new Date();
       this.updatedAt = props.updatedAt || new Date();
   }
-    
-    private generateId(): string {
-        return Math.random().toString(36).substring(2, 9);
-    }
 
     public addOffer(offer: Offer):  Offer {
       if (this.statusPublication === StatusPublication.CLOSED) {
@@ -57,11 +54,11 @@ export class Publication extends Ownable {
         return this.id;
       }
 
-    public closePublication(): Offer[] {
-        this.statusPublication = StatusPublication.CLOSED;
-        this.updatedAt = new Date();
+    public closePublication(acceptedOffer?: Offer): Offer[] {
+      this.statusPublication = StatusPublication.CLOSED;
+      this.updatedAt = new Date();
+      if(!acceptedOffer){
         const rejectedOffers: Offer[] = [];
-
         this.offersExisting
             .filter(offer => offer.getStatusOffer() === StatusOffer.PENDING)
             .forEach(offer => {
@@ -70,6 +67,16 @@ export class Publication extends Ownable {
             });
 
         return rejectedOffers;
+      }
+      const rejectedOffers: Offer[] = [];
+      this.offersExisting
+            .filter(offer => offer.getId() !== acceptedOffer.getId())
+            .forEach(offer => {
+                offer.rejectOffer();
+                rejectedOffers.push(offer);
+            });
+
+      return rejectedOffers;
     }
 
     public acceptOffer(offer: Offer): [Offer[], Card[]] {
@@ -78,10 +85,11 @@ export class Publication extends Ownable {
       }      
       this.updatedAt = new Date();
       const cards = offer.acceptOffer(this.getOwner());
-      const offerRejected = this.closePublication();
+      const offers = this.closePublication(offer);
+      offers.push(offer);
       this.card.setOwner(offer.getOfferOwner());
       cards.push(this.card);
-      return [offerRejected, cards];
+      return [offers, cards];
     }
 
     public rejectOffer(offer: Offer): Offer { 

@@ -3,17 +3,18 @@ import { User } from "../../../../domain/entities/User";
 import { Card } from "../../../../domain/entities/Card";
 import { Publication } from "../../../../domain/entities/Publication";
 import { IOffer } from "../models/OfferModel";
+import { Types } from "mongoose";
 
 export const OfferMapper = {
   toDocument(offer: Offer): Partial<IOffer> {
     return {
-      _id: offer.getId(),
-      offerOwnerId: offer.getOfferOwner().getId(),
-      cardIds: offer.getCardOffers()?.map(card => card.getId()) || [],
+      _id: new Types.ObjectId(offer.getId()),
+      offerOwnerId: new Types.ObjectId(offer.getOfferOwner().getId()),
+      cardIds: offer.getCardOffers()?.map(card => new Types.ObjectId(card.getId())) || [],
       statusOffer: offer.getStatusOffer(),
       moneyOffer: offer.getMoneyOffer(),
       closedAt: offer.getClosedAt(),
-      publicationId: offer.getPublication().getId()
+      publicationId: new Types.ObjectId(offer.getPublication().getId())
     };
   },
 
@@ -24,7 +25,7 @@ export const OfferMapper = {
     publication?: Publication
   ): Offer {
     return new Offer({
-      id: doc._id,
+      id: doc._id.toString(),
       offerOwner: owner,
       cardOffers: cards,
       statusOffer: doc.statusOffer,
