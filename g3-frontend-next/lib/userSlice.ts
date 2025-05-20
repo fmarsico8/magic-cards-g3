@@ -3,6 +3,7 @@ import type { UserResponseDTO, UpdateUserDTO, CreateUserDTO } from "@/types/user
 import { userService } from "@/services/user-service"
 import Promise from "bluebird"
 import { TokenResponse } from "@/types/token"
+import { ApiError } from "@/lib/api-client"
 
 interface UserState {
   currentUser: UserResponseDTO | null
@@ -116,9 +117,6 @@ export const updateUserProfile =
       })
   }
 
-
-  
-
 export const loginUser =
   ({ email, password }: { email: string; password: string }) =>
   (dispatch: any) => {
@@ -130,8 +128,24 @@ export const loginUser =
         dispatch(loginSuccess(response.user))
       })
       .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : "Login failed"
-        dispatch(loginFailure(message))
+        console.error('Login error:', error)
+        let errorMessage = 'Login failed'
+        
+        // Handle our custom ApiError
+        if (error instanceof ApiError) {
+          errorMessage = error.message
+        } else if (error && typeof error === 'object' && 'response' in error) {
+          const errorResponse = (error as any).response
+          if (errorResponse?.data?.error) {
+            errorMessage = errorResponse.data.error
+          } else if (errorResponse?.statusText) {
+            errorMessage = errorResponse.statusText
+          }
+        } else if (error instanceof Error) {
+          errorMessage = error.message
+        }
+        
+        dispatch(loginFailure(errorMessage))
       })
   }
 
@@ -146,8 +160,24 @@ export const registerUser =
         dispatch(loginSuccess(response.user))
       })
       .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : "Signup failed"
-        dispatch(loginFailure(message))
+        console.error('Registration error:', error)
+        let errorMessage = 'Registration failed'
+        
+        // Handle our custom ApiError
+        if (error instanceof ApiError) {
+          errorMessage = error.message
+        } else if (error && typeof error === 'object' && 'response' in error) {
+          const errorResponse = (error as any).response
+          if (errorResponse?.data?.error) {
+            errorMessage = errorResponse.data.error
+          } else if (errorResponse?.statusText) {
+            errorMessage = errorResponse.statusText
+          }
+        } else if (error instanceof Error) {
+          errorMessage = error.message
+        }
+        
+        dispatch(loginFailure(errorMessage))
       })
   }
 

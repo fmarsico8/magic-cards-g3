@@ -148,14 +148,19 @@ export default function OfferDetailPage({ params }: { params: Promise<{ id: stri
               <span className="font-medium">{offer.id}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Publication:</span>
+              <span className="text-muted-foreground">Publication Details:</span>
               <div className="mt-2">
                 <PublicationDetails publicationId={offer.publicationId} />
               </div>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Offered by:</span>
-              <span className="font-medium">{offer.userName}</span>
+              <span className="font-medium">{offer.ownerName}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Publication:</span>
+              <span className="font-medium">{offer.publicationName}</span>
             </div>
 
             {_.size(offer.cardExchangeIds) > 0 && (

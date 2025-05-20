@@ -8,8 +8,10 @@ export interface CreateOfferDTO {
 export interface OfferResponseDTO {
   id: string
   publicationId: string
+  publicationName: string
   userId: string
   ownerId: string
+  ownerName: string
   cardExchangeIds: string[]
   moneyOffer?: number
   status: string

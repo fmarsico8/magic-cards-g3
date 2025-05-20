@@ -23,14 +23,15 @@ export class AuthController {
       
       res.status(201).json(result);
     } catch (error) {
-      logger.error(`Registration error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const message = `Registration error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      logger.error(message);
       
       if (error instanceof Error && error.message === 'User with this email already exists') {
         res.status(409).json({ error: error.message });
         return;
       }
       
-      res.status(500).json({ error: 'Registration failed' });
+      res.status(500).json({ error: message });
     }
   }
 
@@ -51,14 +52,15 @@ export class AuthController {
       
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Login error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const message = `${error instanceof Error ? error.message : 'Unknown error'}`;
+      logger.error(message);
       
       if (error instanceof Error && error.message === 'Invalid credentials') {
         res.status(401).json({ error: 'Invalid email or password' });
         return;
       }
       
-      res.status(500).json({ error: 'Login failed' });
+      res.status(500).json({ error: message }) ;
     }
   }
 
@@ -79,8 +81,9 @@ export class AuthController {
         }
       });
     } catch (error) {
-      logger.error(`Get current user error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      res.status(500).json({ error: 'Failed to get user information' });
+      const message = `Get current user error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      logger.error(message);
+      res.status(500).json({ error: message });
     }
   }
 } 

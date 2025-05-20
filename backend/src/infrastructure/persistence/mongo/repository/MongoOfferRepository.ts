@@ -114,13 +114,12 @@ export class MongoOfferRepository implements OfferRepository {
       limit: filters.limit || 10
     });
 
-    console.log('docs', docs);
     const offers: Offer[] = [];
     for (const doc of docs) {
       const publication = await publicationRepository.findById(doc.publicationId.toString());
       const owner = await userRepository.findById(doc.offerOwnerId.toString());
       const cards = await cardRepository.findByCardsByIds(doc.cardIds.map(id => id.toString()));
-      if (publication && owner && cards) {
+      if (publication && owner) {
         offers.push(OfferMapper.toEntity(doc, owner, cards, publication));
       }
     }
