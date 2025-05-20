@@ -2,9 +2,10 @@ import { Statistic, StatisticType } from '../../domain/entities/Stadistics';
 import {  User } from '../../domain/entities/User';
 import { UserRepository } from '../../domain/repositories/UserRepository';
 import { CreateUserDTO, UpdateUserDTO, UserResponseDTO } from '../dtos/UserDTO';
-import { statisticsRepository } from '../../infrastructure/repositories/Container';
+import { statisticsRepository } from '../../infrastructure/provider/Container';
 import bcrypt from 'bcrypt';
 import { UserAlreadyExistsError, UnauthorizedException, UserNotFoundError } from '../../domain/entities/exceptions/exceptions';
+import { Role } from '../../domain/entities/Role';
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -20,6 +21,7 @@ export class UserService {
       name: userData.name,
       email: userData.email,
       password: hashedPassword,
+      role: userData.role as Role || Role.USER
     });
   
     const savedUser = await this.userRepository.save(user);

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { currentUser, profileForm, isLoading, error } = useAppSelector((state) => state.user)
+  const [submitError, setSubmitError] = useState("")
 
   useEffect(() => {
     // Check if user is logged in
@@ -64,26 +65,31 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitError("")
 
-    // Clear previous errors
-    dispatch(setProfileField({ field: "nameError", value: "" }))
-    dispatch(setProfileField({ field: "emailError", value: "" }))
-    dispatch(setProfileField({ field: "lastNameError", value: "" }))
-    dispatch(setProfileField({ field: "passwordError", value: "" }))
-    dispatch(setProfileField({ field: "confirmPasswordError", value: "" }))
+    try {
+      // Clear previous errors
+      dispatch(setProfileField({ field: "nameError", value: "" }))
+      dispatch(setProfileField({ field: "emailError", value: "" }))
+      dispatch(setProfileField({ field: "lastNameError", value: "" }))
+      dispatch(setProfileField({ field: "passwordError", value: "" }))
+      dispatch(setProfileField({ field: "confirmPasswordError", value: "" }))
 
-    if (!validateForm() || !currentUser) {
-      return
+      if (!validateForm() || !currentUser) {
+        return
+      }
+
+      const userData = {
+        name: profileForm.name,
+        lastName: profileForm.lastName,
+        email: profileForm.email,
+        ...(profileForm.password ? { password: profileForm.password } : {}),
+      }
+
+      dispatch(updateUserProfile({ userId: currentUser.id, userData }))
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "An error occurred while updating your profile")
     }
-
-    const userData = {
-      name: profileForm.name,
-      lastName: profileForm.lastName,
-      email: profileForm.email,
-      ...(profileForm.password ? { password: profileForm.password } : {}),
-    }
-
-    dispatch(updateUserProfile({ userId: currentUser.id, userData }))
   }
 
   if (!currentUser) {
@@ -175,6 +181,8 @@ export default function ProfilePage() {
             <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" disabled={isLoading}>
               {isLoading ? "Saving changes..." : "Save Changes"}
             </Button>
+            
+            {submitError && <p className="text-sm text-red-500 mt-2">{submitError}</p>}
           </form>
         </CardContent>
       </Card>

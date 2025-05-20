@@ -1,19 +1,21 @@
 import { Router, Request, Response } from 'express';
 import { StatisticsController } from '../controllers/StatisticsController';
 import { StatisticsService } from '../../application/services/StatisticsService';
-import { StatisticsRepository } from '../../domain/repositories/StatisticsRepository';
-import { InMemoryStatisticsRepository } from '../../infrastructure/repositories/InMemoryStatisticsRepository';
+import { MongoStatisticsRepository } from '../../infrastructure/persistence/mongo/repository/MongoStatisticsRepository';
+import { JwtService } from '../../infrastructure/auth/jwt.service';
+import { AuthMiddleware } from '../middleware/auth.middleware';
 
-
-const statisticsRepository = new InMemoryStatisticsRepository();
+const statisticsRepository = new MongoStatisticsRepository();
 const statisticsService = new StatisticsService(statisticsRepository);
 const statisticsController = new StatisticsController(statisticsService);
+const jwtService = new JwtService();
+const authMiddleware = new AuthMiddleware(jwtService);
 
 const statisticsRouter = Router();
 
-statisticsRouter.get('/', (req: Request, res: Response) => statisticsController.getStatistics(req, res));
-statisticsRouter.get('/range', (req: Request, res: Response) => statisticsController.getRangeStatistics(req, res));
+statisticsRouter.use(authMiddleware.authenticate);
 
+statisticsRouter.get('/', (req: Request, res: Response) => statisticsController.getRangeStatistics(req, res));
 
 export default statisticsRouter;
 

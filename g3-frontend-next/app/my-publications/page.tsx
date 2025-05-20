@@ -28,7 +28,10 @@ export default function MyPublicationsPage() {
   const [activeTab, setActiveTab] = useState("all")
 
   useEffect(() => {
-
+    if (!currentUser) {
+      router.push("/login")
+      return
+    }
     dispatch(fetchPublications())
   }, [dispatch, currentUser, router])
 
@@ -121,7 +124,7 @@ export default function MyPublicationsPage() {
                               >
                                 <div className="flex items-center gap-1">
                                   {getStatusIcon(offer.status)}
-                                  <span className="text-xs">{offer.status} by {offer.userName}</span>
+                                  <span className="text-xs">{offer.status} by {offer.ownerName}</span>
                                 </div>
                                 <div className="text-xs">
                                   {offer.moneyOffer ? (

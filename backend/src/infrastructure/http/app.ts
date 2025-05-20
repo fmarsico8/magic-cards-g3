@@ -7,6 +7,10 @@ import morgan from 'morgan';
 import config from '../config/config';
 import logger from '../logging/logger';
 import apiRoutes from '../../interfaces/routes';
+import { connectToDatabase } from '../database/mongo.config';
+import { UserService } from '../../application/services/UserService';
+import { userRepository } from '../../infrastructure/provider/Container';
+import { UserAlreadyExistsError } from '../../domain/entities/exceptions/exceptions';
 
 class App {
   public app: Application;
@@ -16,6 +20,11 @@ class App {
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
+  }
+
+  public async initialize(): Promise<void> {
+    await this.setupDatabase();
+    await this.setupAdmin();
   }
 
   private setupMiddleware(): void {
@@ -71,6 +80,35 @@ class App {
       });
     });
   }
+
+  private async setupDatabase(): Promise<void> {
+    await connectToDatabase();
+  }
+
+  private async setupAdmin(): Promise<void> {
+    const userService = new UserService(userRepository);
+    const name     = process.env.ADMIN_NAME     || 'Administrator';
+    const email    = process.env.ADMIN_EMAIL    || 'admin@example.com';
+    const password = process.env.ADMIN_PASSWORD || 'admin';
+    const role     = 'admin';
+
+    try {
+      await userService.createUser({ name, email, password, role });
+      logger.info('Admin user ensured in database');
+    } catch (error) {
+      if (error instanceof UserAlreadyExistsError) {
+        logger.info('Admin user already exists');
+      } else {
+        logger.error('Error setting up admin user:', error);
+      }
+    }
+  }
 }
 
-export default new App().app; 
+const appInstance = new App();
+appInstance.initialize().catch(error => {
+  logger.error('Failed to initialize application:', error);
+  process.exit(1);
+});
+
+export default appInstance.app;

@@ -12,18 +12,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { createCardStart, createCardSuccess, createCardFailure, createCard } from "@/lib/cardsSlice"
-import { createGame} from "@/lib/gameSlice"
+import { createGame, fetchGames} from "@/lib/gameSlice"
 import { CreateGameDTO } from "@/types/game"
 import type { CreateCardBaseDTO, CreateCardDTO, CardResponseDTO } from "@/types/card"
 import { Plus } from "lucide-react"
-import { createCardBase } from "@/lib/cardBaseSlice"
+import { createCardBase, fetchCardBases } from "@/lib/cardBaseSlice"
 import _ from "lodash"
 
 
 export default function CreateCardPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { cards, isLoading, error } = useAppSelector((state) => state.cards)
+  const { isLoading, error } = useAppSelector((state) => state.cards)
   const { currentUser } = useAppSelector((state) => state.user)
 
   // State for games
@@ -42,6 +42,7 @@ export default function CreateCardPage() {
   // Form state for card details
   const [statusCard, setStatusCard] = useState<number>(5)
   const [urlImage, setUrlImage] = useState<string>("")
+  const [submitError, setSubmitError] = useState("")
   const [formErrors, setFormErrors] = useState<{
     cardBase?: string
     statusCard?: string
@@ -54,42 +55,49 @@ export default function CreateCardPage() {
       router.push("/login")
       return
     }
-    if (selectedGameId) {
-      setFilteredCardBases(_.filter(cardBases, (cb) => cb.game.id === selectedGameId))
-    } else {
-      setFilteredCardBases([])
-    }
-  }, [currentUser, cardBases])
 
-  // Handle creating a new game
+    if(games.length === 0) {
+      dispatch(fetchGames())
+      dispatch(fetchCardBases())
+    }
+  }, [currentUser, router])
+
+  const handleGameSelection = (gameId: string) => {
+    setSelectedGameId(gameId)
+    setGameSelectionMode("existing")
+    setFilteredCardBases(_.filter(cardBases, (cb) => cb.game.id === gameId));
+  }
+  
   const handleCreateGame = async () => {
     if (!newGameName.trim()) {
       setFormErrors((prev) => ({ ...prev, game: "Game name is required" }))
       return
     }
   
-    // No hace falta llamar a createGameStart si el thunk ya lo despacha internamente
     try {
       const newGameData: CreateGameDTO = {
         name: newGameName,
       }
   
-      // Ejecutás el thunk y obtenés el juego recién creado
       const newGame = await dispatch(createGame(newGameData))
   
-      // Actualizás el estado local solo si lo necesitás para el comportamiento inmediato del form
       setSelectedGameId(newGame.id)
       setNewGameName("")
       setGameSelectionMode("existing")
       setFormErrors((prev) => ({ ...prev, game: undefined }))
+
+      if (selectedGameId) {
+        setFilteredCardBases(_.filter(cardBases, (cb) => cb.game.id === selectedGameId))
+      } else {
+        setFilteredCardBases([])
+      }
     } catch (err) {
-      // Ya se despachó el createGameFailure en el thunk, pero esto es por si querés manejar algo visual localmente
+      setSubmitError(err instanceof Error ? err.message : "Failed to create game. Please try again.")
       dispatch(createCardFailure("Failed to create game. Please try again."))
     }
   }
 
 
-  // Handle creating a new card base
   const handleCreateCardBase = async () => {
     if (!selectedGameId) {
       setFormErrors((prev) => ({ ...prev, cardBase: "Please select or create a game first" }))
@@ -111,9 +119,10 @@ export default function CreateCardPage() {
   
       setSelectedCardBaseId(newCardBase.id)
       setNewCardBaseName(newCardBase.nameCard)
-      setCardBaseSelectionMode("existing")
+      setFilteredCardBases([...filteredCardBases, newCardBase])
       setFormErrors((prev) => ({ ...prev, cardBase: undefined }))
     } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create card base. Please try again.")
       dispatch(createCardFailure("Failed to create card base. Please try again."))
     }
   }
@@ -152,42 +161,32 @@ export default function CreateCardPage() {
   // Handle form submission to create a new card
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!currentUser) {
-      dispatch(createCardFailure("You must be logged in to create a card"))
-      return
-    }
-
-    if (!validateForm()) {
-      return
-    }
-
-    dispatch(createCardStart())
+    setSubmitError("")
 
     try {
-      // If we're creating a new card base, do that first
-      let cardBaseId = selectedCardBaseId
-
-      if (cardBaseSelectionMode === "new") {
-        // Create the card base first
-        await handleCreateCardBase()
-        // Get the ID of the newly created card base
-        const newCardBase = cardBases.find((cb) => cb.nameCard === newCardBaseName && cb.game.id === selectedGameId)
-        if (newCardBase) {
-          cardBaseId = newCardBase.id
-        }
+      if (!currentUser) {
+        dispatch(createCardFailure("You must be logged in to create a card"))
+        return
       }
+
+      if (!validateForm()) {
+        return
+      }
+
+      dispatch(createCardStart())
 
       // Use the service to create the card
       const cardData: CreateCardDTO = {
-        cardBaseId: cardBaseId!,
+        cardBaseId: selectedCardBaseId,
         statusCard,
         urlImage,
         ownerId: currentUser.id,
       }
+
       dispatch(createCard(cardData))
       router.push("/cards")
     } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create card. Please try again.")
       dispatch(createCardFailure("Failed to create card. Please try again."))
     }
   }
@@ -207,7 +206,6 @@ export default function CreateCardPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Game Selection Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Step 1: Select or Create a Game</h3>
 
@@ -221,7 +219,7 @@ export default function CreateCardPage() {
                 </TabsList>
 
                 <TabsContent value="existing" className="space-y-4">
-                  <Select value={selectedGameId} onValueChange={setSelectedGameId}>
+                  <Select value={selectedGameId} onValueChange={(gameId) => handleGameSelection(gameId)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a game" />
                     </SelectTrigger>
@@ -257,7 +255,6 @@ export default function CreateCardPage() {
               </Tabs>
             </div>
 
-            {/* Card Base Selection Section - Only show if a game is selected */}
             {selectedGameId && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Step 2: Select or Create a Card</h3>
@@ -277,7 +274,7 @@ export default function CreateCardPage() {
                         <SelectValue placeholder="Select a card" />
                       </SelectTrigger>
                       <SelectContent>
-                        { _.size(filteredCardBases) > 0 ? (
+                        { !_.isEmpty(filteredCardBases) ? (
                           filteredCardBases.map((cardBase) => (
                             <SelectItem key={cardBase.id} value={cardBase.id}>
                               {cardBase.nameCard}
@@ -315,8 +312,7 @@ export default function CreateCardPage() {
               </div>
             )}
 
-            {/* Card Details Form - Only show if a game is selected */}
-            {selectedGameId && (
+            {selectedCardBaseId && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Step 3: Card Details</h3>
 
@@ -360,6 +356,8 @@ export default function CreateCardPage() {
                   >
                     {isLoading ? "Creating card..." : "Add Card"}
                   </Button>
+                  
+                  {submitError && <p className="text-sm text-red-500 mt-2">{submitError}</p>}
                 </div>
               </div>
             )}

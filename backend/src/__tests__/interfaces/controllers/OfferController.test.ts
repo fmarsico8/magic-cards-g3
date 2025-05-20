@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { OfferController } from '../../../interfaces/controllers/OfferController';
 import { OfferService } from '../../../application/services/OfferService';
 import { CreateOfferDTO, OfferUpdatedDTO, OfferResponseDTO } from '../../../application/dtos/OfferDTO';
-import { offerRepository } from '../../../infrastructure/repositories/Container';
+import { offerRepository } from '../../../infrastructure/provider/Container';
 
 // Mock the repositories
 jest.mock('../../../infrastructure/repositories/Container', () => ({
@@ -58,12 +58,14 @@ describe('OfferController', () => {
             const expectedOffer: OfferResponseDTO = {
                 id: 'offer-id',
                 publicationId: 'valid-publication-id',
+                publicationName: 'Test Publication',
                 moneyOffer: 100,
                 cardExchangeIds: ['card-id-1', 'card-id-2'],
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 status: 'PENDING',
                 ownerId: 'test-user-id',
+                ownerName: 'Test User'
             };
 
             (offerRepository.save as jest.Mock).mockImplementation((offer) => {
@@ -105,12 +107,14 @@ describe('OfferController', () => {
                 {
                     id: 'offer-id',
                     publicationId: 'valid-publication-id',
+                    publicationName: 'Test Publication',
                     moneyOffer: 100,
                     cardExchangeIds: ['card-id-1', 'card-id-2'],
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     status: 'PENDING',
                     ownerId: 'test-user-id',
+                    ownerName: 'Test User'
                 }
             ];
 
@@ -141,12 +145,14 @@ describe('OfferController', () => {
             const expectedOffer: OfferResponseDTO = {
                 id: offerId,
                 publicationId: 'valid-publication-id',
+                publicationName: 'Test Publication',
                 moneyOffer: 100,
                 cardExchangeIds: ['card-id-1', 'card-id-2'],
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 status: 'PENDING',
                 ownerId: 'test-user-id',
+                ownerName: 'Test User'
             };
 
             mockOfferService.getOffer.mockResolvedValue(expectedOffer);
@@ -183,12 +189,14 @@ describe('OfferController', () => {
             const expectedOffer: OfferResponseDTO = {
                 id: offerId,
                 publicationId: 'valid-publication-id',
+                publicationName: 'Test Publication',
                 moneyOffer: 100,
                 cardExchangeIds: ['card-id-1', 'card-id-2'],
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 status: 'ACCEPTED',
                 ownerId: 'test-user-id',
+                ownerName: 'Test User'
             };
 
             mockOfferService.updateOffer.mockResolvedValue(expectedOffer);
