@@ -43,7 +43,7 @@ export default function PublicationsPage() {
         offset: page * limit,
       })
     ).then(() => setHasFetched(true));
-  }, [dispatch, page, searchTerm, selectedGame, publications]);
+  }, [dispatch, page, searchTerm, selectedGame, currentUser]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
