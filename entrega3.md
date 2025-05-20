@@ -31,6 +31,3 @@ Tras completar estas tareas, planeamos:
 2. Integrar la API de **Magic The Gathering** para enriquecer datos de cartas.  
 3. Aumentar cobertura de tests del backend y frontend.  
 
----
-
-> ¡Vamos con todo en esta tercera entrega! 🚀
