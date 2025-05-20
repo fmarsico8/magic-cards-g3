@@ -17,7 +17,7 @@ import RequireAuth from '@/components/ui/requireauth'
 export default function PublicationsPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { publications, isLoading, error } = useAppSelector((state) => state.publications)
+  const { publications, pagination, isLoading, error } = useAppSelector((state) => state.publications)
   const { currentUser } = useAppSelector((state) => state.user)
   const games = useAppSelector((state) => state.game)
 
@@ -43,7 +43,7 @@ export default function PublicationsPage() {
         offset: page * limit,
       })
     ).then(() => setHasFetched(true));
-  }, [dispatch, page, searchTerm, selectedGame]);
+  }, [dispatch, page, searchTerm, selectedGame, publications]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
@@ -102,9 +102,9 @@ export default function PublicationsPage() {
           </div>
         ) : (
           <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {_.size(publications) > 0 && 
                 _.map(publications, (publication) => (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Card key={publication.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="aspect-video relative bg-muted">
                     <Link href={`/publications/${publication.id}`}>
@@ -150,13 +150,16 @@ export default function PublicationsPage() {
                     </Button>
                   </CardFooter>
                 </Card>
-                <div className="flex justify-center mt-6">
-                  <Button onClick={() => setPage((prev) => prev + 1)}>Load More</Button>
-                </div>
-              </div>
               ))}
+            </div>
 
-            {_.size(publications) === 0 && (
+            {pagination.hasMore && (
+              <div className="flex justify-center mt-6">
+                <Button onClick={() => setPage((prev) => prev + 1)}>Load More</Button>
+              </div>
+            )}
+
+            {_.isEmpty(publications) && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No publications found. Try adjusting your filters.</p>
                 {currentUser && (

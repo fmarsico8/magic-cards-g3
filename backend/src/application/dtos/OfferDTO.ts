@@ -11,12 +11,14 @@ export interface CreateOfferDTO {
 export interface OfferResponseDTO {
     id: string;
     publicationId: string;
+    publicationName: string;
     moneyOffer?: number;
     cardExchangeIds?: string[];
     createdAt: Date;
     updatedAt: Date;
     status: string;
     ownerId: string;
+    ownerName: string;
 }
 
 export interface OfferFilterDTO {

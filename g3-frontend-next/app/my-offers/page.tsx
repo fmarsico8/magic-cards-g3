@@ -123,7 +123,7 @@ export default function MyOffersPage() {
                       <Card key={offer.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                         <CardHeader className="p-4 pb-2">
                           <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">Publication {offer.publicationId}</CardTitle>
+                            <CardTitle className="text-lg">Publication {offer.publicationName}</CardTitle>
                             <Badge className="flex items-center gap-1">
                               {getStatusIcon(offer.status)}
                               {offer.status}
@@ -132,7 +132,7 @@ export default function MyOffersPage() {
                         </CardHeader>
                         <CardContent className="p-4 pt-0 pb-2">
                           <p className="text-sm mb-1">Publication ID: {offer.publicationId}</p>
-                          <p className="text-xs text-muted-foreground">Owner: {offer.ownerId}</p>
+                          <p className="text-xs text-muted-foreground">Owner: {offer.ownerName}</p>
                           <p className="text-xs text-muted-foreground">
                             Offered: {new Date(offer.createdAt).toISOString().slice(0, 10)}
                           </p>
@@ -203,7 +203,7 @@ export default function MyOffersPage() {
                       <Card key={offer.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                         <CardHeader className="p-4 pb-2">
                           <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">Publication {offer.publicationId}</CardTitle>
+                            <CardTitle className="text-lg">Publication {offer.publicationName}</CardTitle>
                             <Badge className="flex items-center gap-1">
                               {getStatusIcon(offer.status)}
                               {offer.status}
@@ -212,7 +212,7 @@ export default function MyOffersPage() {
                         </CardHeader>
                         <CardContent className="p-4 pt-0 pb-2">
                           <p className="text-sm mb-1">Publication ID: {offer.publicationId}</p>
-                          <p className="text-xs text-muted-foreground">From: {offer.ownerId}</p>
+                          <p className="text-xs text-muted-foreground">From: {offer.ownerName}</p>
                           <p className="text-xs text-muted-foreground">
                             Offered: {new Date(offer.createdAt).toISOString().slice(0, 10)}
                           </p>

@@ -19,6 +19,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [submitError, setSubmitError] = useState("")
   const [formErrors, setFormErrors] = useState<{
     name?: string
     email?: string
@@ -56,8 +57,14 @@ export default function SignupPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateForm()) return
-    dispatch(registerUser({ name, email, password }))
+    setSubmitError("")
+    
+    try {
+      if (!validateForm()) return
+      dispatch(registerUser({ name, email, password }))
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "An error occurred during registration")
+    }
   }
 
   // Redirect on signup
@@ -127,6 +134,8 @@ export default function SignupPage() {
             <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Sign Up"}
             </Button>
+            
+            {submitError && <p className="text-sm text-red-500 mt-2">{submitError}</p>}
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">

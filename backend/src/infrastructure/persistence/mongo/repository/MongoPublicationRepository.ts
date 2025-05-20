@@ -131,7 +131,6 @@ export class MongoPublicationRepository implements PublicationRepository {
       filters.limit || 10
     );
 
-    console.log('docs', docs);
     const publications: Publication[] = [];
     for (const doc of docs) {
       const card = await cardRepository.findById(doc.cardId.toString());

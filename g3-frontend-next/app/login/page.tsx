@@ -18,6 +18,7 @@ export default function LoginPage() {
   // Form state
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [submitError, setSubmitError] = useState("")
   const [formErrors, setFormErrors] = useState<{
     email?: string
     password?: string
@@ -43,7 +44,16 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateForm()) return
+    setSubmitError("")
+    
+    try {
+      if (!validateForm()) return
+    } catch (err) {
+      console.log(err)
+      setSubmitError(err instanceof Error ? err.message : "An error occurred validating the form")
+      return
+    }
+    
     dispatch(loginUser({ email, password }))
   }
 
@@ -64,7 +74,7 @@ export default function LoginPage() {
         <CardContent>
           {error && (
             <Alert variant="destructive" className="mb-4">
-              <AlertDescription>Login failed. Please check your username and password, then try again.</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -93,6 +103,8 @@ export default function LoginPage() {
             <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Login"}
             </Button>
+            
+            {submitError && <p className="text-sm text-red-500 mt-2">{submitError}</p>}
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">

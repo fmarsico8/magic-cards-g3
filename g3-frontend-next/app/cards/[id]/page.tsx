@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { CardResponseDTO } from "@/types/card"
-import { ArrowLeft, Share2, Heart } from "lucide-react"
+import { ArrowLeft, Share2, Check } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { fetchCardById } from "@/lib/cardsSlice"
 
@@ -17,9 +17,9 @@ export default function CardDetailPage({ params }: { params: Promise<{ id: strin
   const [isOwner, setIsOwner] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [unwrappedParams, setUnwrappedParams] = useState<{ id: string } | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    // Unwrap the params
     params.then((unwrapped) => setUnwrappedParams(unwrapped))
   }, [params])
 
@@ -44,8 +44,33 @@ export default function CardDetailPage({ params }: { params: Promise<{ id: strin
     }
   }, [user, card])
 
+  // Reset copied state after 2 seconds
+  useEffect(() => {
+    if (copied) {
+      const timer = setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [copied])
+
   const handleCreatePublication = () => {
     router.push(`/publications/create?cardId=${card?.id}`)
+  }
+
+  const handleCopyLink = () => {
+    // Get the current URL
+    const url = window.location.href
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        setCopied(true)
+      })
+      .catch(err => {
+        console.error('Failed to copy URL: ', err)
+        alert('Failed to copy the link to clipboard')
+      })
   }
 
   if (isLoading) {
@@ -119,13 +144,21 @@ export default function CardDetailPage({ params }: { params: Promise<{ id: strin
                 Create Publication
               </Button>
             )}
-            <Button variant="outline" className="flex-1">
-              <Heart className="mr-2 h-4 w-4" />
-              Add to Wishlist
-            </Button>
-            <Button variant="outline" size="icon">
-              <Share2 className="h-4 w-4" />
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handleCopyLink}
+                title={copied ? "Copied!" : "Copy link to clipboard"}
+              >
+                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Share2 className="h-4 w-4" />}
+              </Button>
+              {copied && (
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1 px-2 rounded">
+                  Copied!
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

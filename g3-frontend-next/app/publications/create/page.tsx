@@ -29,6 +29,7 @@ export default function CreatePublicationPage() {
   const [valueMoney, setValueMoney] = useState(0)
   const [wantExchange, setWantExchange] = useState(false)
   const [selectedCardExchanges, setSelectedCardExchanges] = useState<string[]>([])
+  const [submitError, setSubmitError] = useState("")
   const [formErrors, setFormErrors] = useState<{
     name?: string
     valueMoney?: string
@@ -51,7 +52,7 @@ export default function CreatePublicationPage() {
     if (_.size(cards) === 0) {
       dispatch(fetchCards())
     }
-  }, [searchParams, dispatch, currentUser, cards ])
+  }, [searchParams, dispatch, currentUser, cards, name ])
 
   const handleCardExchangeToggle = (cardBaseId: string) => {
     setSelectedCardExchanges((prev) => {
@@ -83,26 +84,33 @@ export default function CreatePublicationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentUser) {
-      dispatch(createPublicationFailure("You must be logged in to create a publication"))
-      return
-    }
-    if (!validateForm()) {
-      return
-    }
-    if (selectedCard)
-    {
-      const publicationData: CreatePublicationDTO = {
-        cardId: selectedCard.id,
-        ownerId: currentUser.id,
-        cardExchangeIds: wantExchange ? selectedCardExchanges : [],
-        valueMoney: valueMoney > 0 ? valueMoney : undefined,
-      }
-      dispatch(createPublication(publicationData))
-      router.push("/publications")
-    }
-    else throw new Error("Select a card first.")
+    setSubmitError("")
     
+    try {
+      if (!currentUser) {
+        dispatch(createPublicationFailure("You must be logged in to create a publication"))
+        return
+      }
+      if (!validateForm()) {
+        return
+      }
+      if (selectedCard)
+      {
+        const publicationData: CreatePublicationDTO = {
+          cardId: selectedCard.id,
+          ownerId: currentUser.id,
+          cardExchangeIds: wantExchange ? selectedCardExchanges : [],
+          valueMoney: valueMoney > 0 ? valueMoney : undefined,
+        }
+        dispatch(createPublication(publicationData))
+        router.push("/publications")
+      }
+      else {
+        setSubmitError("Select a card first.")
+      }
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "An error occurred while creating the publication")
+    }
   }
 
   const isLoading = isCardsLoading || isPublicationLoading
@@ -197,34 +205,11 @@ export default function CreatePublicationPage() {
               {formErrors.valueMoney && <p className="text-sm text-red-500">{formErrors.valueMoney}</p>}
             </div>
 
-            <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <Checkbox
-                id="wantExchange"
-                checked={wantExchange}
-                onCheckedChange={(checked) => setWantExchange(!!checked)}
-              />
-              <div className="space-y-1 leading-none">
-                <label htmlFor="wantExchange" className="text-sm font-medium">
-                  I want to exchange for specific cards
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  Select this if you're looking for specific cards in return
-                </p>
-              </div>
-            </div>
-
-            {wantExchange && (
-              <div className="space-y-4 border rounded-md p-4">
-                <h3 className="text-sm font-medium">Cards I'm looking for:</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {/* Add your card bases here */}
-                </div>
-              </div>
-            )}
-
             <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" disabled={isLoading}>
               {isLoading ? "Creating publication..." : "Create Publication"}
             </Button>
+            
+            {submitError && <p className="text-sm text-red-500 mt-2">{submitError}</p>}
           </form>
         </CardContent>
       </Card>

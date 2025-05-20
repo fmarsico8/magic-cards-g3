@@ -12,18 +12,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { createCardStart, createCardSuccess, createCardFailure, createCard } from "@/lib/cardsSlice"
-import { createGame} from "@/lib/gameSlice"
+import { createGame, fetchGames} from "@/lib/gameSlice"
 import { CreateGameDTO } from "@/types/game"
 import type { CreateCardBaseDTO, CreateCardDTO, CardResponseDTO } from "@/types/card"
 import { Plus } from "lucide-react"
-import { createCardBase } from "@/lib/cardBaseSlice"
+import { createCardBase, fetchCardBases } from "@/lib/cardBaseSlice"
 import _ from "lodash"
 
 
 export default function CreateCardPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { cards, isLoading, error } = useAppSelector((state) => state.cards)
+  const { isLoading, error } = useAppSelector((state) => state.cards)
   const { currentUser } = useAppSelector((state) => state.user)
 
   // State for games
@@ -42,6 +42,7 @@ export default function CreateCardPage() {
   // Form state for card details
   const [statusCard, setStatusCard] = useState<number>(5)
   const [urlImage, setUrlImage] = useState<string>("")
+  const [submitError, setSubmitError] = useState("")
   const [formErrors, setFormErrors] = useState<{
     cardBase?: string
     statusCard?: string
@@ -54,7 +55,12 @@ export default function CreateCardPage() {
       router.push("/login")
       return
     }
-  }, [currentUser])
+
+    if(games.length === 0) {
+      dispatch(fetchGames())
+      dispatch(fetchCardBases())
+    }
+  }, [currentUser, router])
 
   // Handle creating a new game
   const handleCreateGame = async () => {
@@ -74,13 +80,14 @@ export default function CreateCardPage() {
       setNewGameName("")
       setGameSelectionMode("existing")
       setFormErrors((prev) => ({ ...prev, game: undefined }))
-    
+
       if (selectedGameId) {
         setFilteredCardBases(_.filter(cardBases, (cb) => cb.game.id === selectedGameId))
       } else {
         setFilteredCardBases([])
       }
     } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create game. Please try again.")
       dispatch(createCardFailure("Failed to create game. Please try again."))
     }
   }
@@ -107,9 +114,10 @@ export default function CreateCardPage() {
   
       setSelectedCardBaseId(newCardBase.id)
       setNewCardBaseName(newCardBase.nameCard)
-      setCardBaseSelectionMode("existing")
+      setFilteredCardBases([...filteredCardBases, newCardBase])
       setFormErrors((prev) => ({ ...prev, cardBase: undefined }))
     } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create card base. Please try again.")
       dispatch(createCardFailure("Failed to create card base. Please try again."))
     }
   }
@@ -148,19 +156,21 @@ export default function CreateCardPage() {
   // Handle form submission to create a new card
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitError("")
 
-    if (!currentUser) {
-      dispatch(createCardFailure("You must be logged in to create a card"))
-      return
-    }
+    try {
+      if (!currentUser) {
+        dispatch(createCardFailure("You must be logged in to create a card"))
+        return
+      }
 
-    if (!validateForm()) {
-      return
-    }
+      if (!validateForm()) {
+        return
+      }
 
-    dispatch(createCardStart())
+      dispatch(createCardStart())
 
-    try {      // Use the service to create the card
+      // Use the service to create the card
       const cardData: CreateCardDTO = {
         cardBaseId: selectedCardBaseId,
         statusCard,
@@ -168,10 +178,10 @@ export default function CreateCardPage() {
         ownerId: currentUser.id,
       }
 
-      console.log("cardData", cardData);
       dispatch(createCard(cardData))
       router.push("/cards")
     } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create card. Please try again.")
       dispatch(createCardFailure("Failed to create card. Please try again."))
     }
   }
@@ -259,7 +269,7 @@ export default function CreateCardPage() {
                         <SelectValue placeholder="Select a card" />
                       </SelectTrigger>
                       <SelectContent>
-                        { _.size(filteredCardBases) > 0 ? (
+                        { !_.isEmpty(filteredCardBases) ? (
                           filteredCardBases.map((cardBase) => (
                             <SelectItem key={cardBase.id} value={cardBase.id}>
                               {cardBase.nameCard}
@@ -341,6 +351,8 @@ export default function CreateCardPage() {
                   >
                     {isLoading ? "Creating card..." : "Add Card"}
                   </Button>
+                  
+                  {submitError && <p className="text-sm text-red-500 mt-2">{submitError}</p>}
                 </div>
               </div>
             )}

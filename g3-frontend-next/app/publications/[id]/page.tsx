@@ -280,34 +280,7 @@ export default function PublicationDetailPage({ params }: { params: { id: string
                         </div>
                       </div>
                     )}
-
-                    <div className="grid gap-2">
-                      <Label>Cards to offer:</Label>
-                      <div className="border rounded-md p-3 max-h-[200px] overflow-y-auto">
-                        { _.size(cards) > 0 ? (
-                          _.map(cards, (card: any) => (
-                            <div key={card.id} className="flex items-center space-x-2 py-1">
-                              <Checkbox
-                                id={card.id}
-                                checked={selectedCardExchanges.includes(card.id)}
-                                onCheckedChange={() => handleCardExchangeToggle(card.id)}
-                              />
-                              <label
-                                htmlFor={card.id}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {card.cardBase.Name}
-                              </label>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="flex items-center justify-center py-4 text-muted-foreground">
-                            <AlertCircle className="h-4 w-4 mr-2" />
-                            You don't have any cards to offer
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    
                   </div>
                   <DialogFooter>
                     <Button

@@ -117,19 +117,23 @@ export class OfferService {
     }
 
     private toOfferResponseDTO(offer: Offer): OfferResponseDTO {
-        const publicationId = offer.getPublication().getId();
+        const publication = offer.getPublication();
+        const publicationId = publication.getId();
         const cardExchangeIds = offer.getCardOffers()?.map(card => card.getId());
-        const ownerId = offer.getOfferOwner().getId();
+        const owner = offer.getOfferOwner();
+        const ownerId = owner.getId();
 
         return {
             id: offer.getId(),
             publicationId,
+            publicationName: publication.getCard().getCardBase().getName(),
             moneyOffer: offer.getMoneyOffer(),
             cardExchangeIds,
             createdAt: offer.getCreatedAt(),
             updatedAt: offer.getUpdatedAt(),
             status: offer.getStatusOffer(),
-            ownerId: ownerId
+            ownerId: ownerId,
+            ownerName: owner.getName()
         };
     }
     
