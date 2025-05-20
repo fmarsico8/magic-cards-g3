@@ -1,6 +1,6 @@
-import { StatisticType, Statistic } from "../../domain/entities/Stadistics";
+import { Statistic } from "../../domain/entities/Stadistics";
 import { StatisticsRepository } from "../../domain/repositories/StatisticsRepository";
-import { StatisticDTO, RangeStatisticDTO } from "../dtos/StatisticsDTO";
+import {RangeStatisticDTO, StatisticResponseDTO } from "../dtos/StatisticsDTO";
 import { userRepository } from "../../infrastructure/provider/Container";
 import { UserService } from "./UserService";
 import { UnauthorizedException } from "../../domain/entities/exceptions/exceptions";
@@ -10,22 +10,21 @@ export class StatisticsService {
     constructor(private readonly statisticsRepository: StatisticsRepository) {}
     
 
-    public async getStatistics(statisticsDTO:StatisticDTO): Promise<Statistic> {
+    public async getRangeStatistics(statisticsDTO:RangeStatisticDTO): Promise<StatisticResponseDTO[]> {
         const user = await this.userService.getSimpleUser(statisticsDTO.userId);
         if(!user.isAdmin())
         {
             throw new UnauthorizedException("Only Admins can view statistics");
         }
-        const statistic = new Statistic(statisticsDTO.type, statisticsDTO.date, statisticsDTO.amount);
-        return this.statisticsRepository.getStatistics(statistic);
+        const statistics = await this.statisticsRepository.getRangeStatistics(statisticsDTO.type, statisticsDTO.from, statisticsDTO.to);
+        return this.toStatisticDTO(statistics);
     }
 
-    public async getRangeStatistics(statisticsDTO:RangeStatisticDTO): Promise<Statistic[]> {
-        const user = await this.userService.getSimpleUser(statisticsDTO.userId);
-        if(!user.isAdmin())
-        {
-            throw new UnauthorizedException("Only Admins can view statistics");
-        }
-        return this.statisticsRepository.getRangeStatistics(statisticsDTO.type, statisticsDTO.from, statisticsDTO.to);
+    public toStatisticDTO(statistics: Statistic[]): StatisticResponseDTO[] {
+        return statistics.map(statistic => ({
+            type: statistic.type,
+            date: statistic.date,
+            amount: statistic.amount
+        }));
     }
 }

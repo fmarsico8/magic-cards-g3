@@ -12,3 +12,10 @@ export interface RangeStatisticDTO {
   from: Date
   to: Date
 }
+
+export interface StatisticResponseDTO {
+  type: StatisticType;
+  date: Date;
+  amount: number;
+}
+

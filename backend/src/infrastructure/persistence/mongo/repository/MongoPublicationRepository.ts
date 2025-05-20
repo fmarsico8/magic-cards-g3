@@ -1,4 +1,4 @@
-// infrastructure/repository/MongoPublicationRepository.ts
+
 import { PublicationRepository } from "../../../../domain/repositories/PublicationRepository";
 import { Publication } from "../../../../domain/entities/Publication";
 import { PublicationModel } from "../models/PublicationModel";
@@ -7,7 +7,6 @@ import { PublicationFilterDTO } from "../../../../application/dtos/PublicationDT
 import { PaginatedResponseDTO, PaginationDTO } from "../../../../application/dtos/PaginationDTO";
 import { CardBase } from "../../../../domain/entities/CardBase";
 import { Offer } from "../../../../domain/entities/Offer";
-import { Types } from 'mongoose';
 import {
   userRepository,
   cardRepository,
@@ -124,14 +123,12 @@ export class MongoPublicationRepository implements PublicationRepository {
       if (filters.data?.minValue) query.value.$gte = filters.data.minValue;
       if (filters.data?.maxValue) query.value.$lte = filters.data.maxValue;
     }
-    console.log('query', query);
     const { docs, total } = await this.publicationModel.findPaginatedWithFilters(
       query,
       filters.offset || 0,
       filters.limit || 10
     );
 
-    console.log('docs', docs);
     const publications: Publication[] = [];
     for (const doc of docs) {
       const card = await cardRepository.findById(doc.cardId.toString());

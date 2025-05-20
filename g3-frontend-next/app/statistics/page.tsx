@@ -9,13 +9,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchStatistics, setSelectedType } from '@/lib/statisticSlice';
 
 export default function StatisticsPage() {
   const dispatch = useAppDispatch();
-  const { statistics, selectedType, isLoading, error } = useAppSelector((state) => state.statistics);
+  const { statistics, isLoading, error } = useAppSelector((state) => state.statistics);
   const [selectedStatistic, setSelectedStatistic] = useState<StatisticType>(StatisticType.USERS_REGISTERED);
 
   useEffect(() => {
@@ -36,6 +36,13 @@ export default function StatisticsPage() {
   };
 
   const currentData = statistics[selectedStatistic] || [];
+
+  // Format the data for the chart
+  const formattedData = currentData.map(item => ({
+    ...item,
+    date: new Date(item.date).toLocaleDateString(),
+    value: item.amount
+  }));
 
   return (
     <div className="container mx-auto p-6">
@@ -79,21 +86,30 @@ export default function StatisticsPage() {
           ) : (
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={currentData}>
+                <LineChart data={formattedData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
+                  <XAxis 
                     dataKey="date"
-                    tickFormatter={(date: string) => new Date(date).toLocaleDateString()}
+                    tick={{ fontSize: 12 }}
+                    interval="preserveStartEnd"
                   />
-                  <YAxis />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => value.toLocaleString()}
+                  />
                   <Tooltip
-                    labelFormatter={(date: string) => new Date(date).toLocaleDateString()}
+                    formatter={(value: number) => [value.toLocaleString(), 'Value']}
+                    labelFormatter={(label) => `Date: ${label}`}
                   />
+                  <Legend />
                   <Line
                     type="monotone"
                     dataKey="value"
+                    name={selectedStatistic.replace(/_/g, ' ').toLowerCase()}
                     stroke="#8884d8"
                     strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
