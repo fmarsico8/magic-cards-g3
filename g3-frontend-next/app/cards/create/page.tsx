@@ -62,7 +62,12 @@ export default function CreateCardPage() {
     }
   }, [currentUser, router])
 
-  // Handle creating a new game
+  const handleGameSelection = (gameId: string) => {
+    setSelectedGameId(gameId)
+    setGameSelectionMode("existing")
+    setFilteredCardBases(_.filter(cardBases, (cb) => cb.game.id === gameId));
+  }
+  
   const handleCreateGame = async () => {
     if (!newGameName.trim()) {
       setFormErrors((prev) => ({ ...prev, game: "Game name is required" }))
@@ -214,7 +219,7 @@ export default function CreateCardPage() {
                 </TabsList>
 
                 <TabsContent value="existing" className="space-y-4">
-                  <Select value={selectedGameId} onValueChange={setSelectedGameId}>
+                  <Select value={selectedGameId} onValueChange={(gameId) => handleGameSelection(gameId)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a game" />
                     </SelectTrigger>
