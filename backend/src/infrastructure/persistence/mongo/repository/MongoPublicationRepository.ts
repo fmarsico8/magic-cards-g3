@@ -62,7 +62,12 @@ export class MongoPublicationRepository implements PublicationRepository {
           (id) => offerRepository.findById(id.toString(), true)))).filter((o: any) => o) as Offer[]
       : [];
     
-    return PublicationMapper.toEntity(doc, owner, card, cardExchange, offers);
+    const publication = PublicationMapper.toEntity(doc, owner, card, cardExchange, offers);
+    offers.forEach((o) => {
+      o.setPublication(publication);
+    });
+    publication.setOffersExisting(offers);
+    return publication;
   }  
 
   async findAll(): Promise<Publication[]> {
