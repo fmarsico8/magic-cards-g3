@@ -28,14 +28,12 @@ services:
     build:
       context: ./g3-frontend-next
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: "http://10.0.2.71:3001/api"
     container_name: magic-cards-frontend
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: "http://10.0.2.71:3001/api"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.0.2.71:3001/api}
     restart: unless-stopped
     networks:
       - app-network
