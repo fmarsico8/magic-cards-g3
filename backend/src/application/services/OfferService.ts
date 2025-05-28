@@ -7,8 +7,7 @@ import { UserService } from "./UserService";
 import { StatusOffer } from "../../domain/entities/StatusOffer";
 import { Statistic, StatisticType } from "../../domain/entities/Stadistics";
 import { PaginatedResponseDTO, PaginationDTO } from "../dtos/PaginationDTO";
-import { UnauthorizedException } from '../../domain/entities/exceptions/exceptions';
-import { filter } from "compression";
+
 
 export class OfferService {
     userService : UserService = new UserService(userRepository);
@@ -32,6 +31,9 @@ export class OfferService {
                 const foundCardIds = cardOffers.map(card => card.getId());
                 const invalidCardIds = offerData.cardExchangeIds.filter(id => !foundCardIds.includes(id));
                 throw new Error(`Invalid cards with IDs: ${invalidCardIds.join(', ')}`);
+            }
+            if (cardOffers) {
+                cardOffers.forEach((card: Card) => card.validateOwnership(offerOwner,"Card"));
             }
         }
 
