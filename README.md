@@ -1,11 +1,12 @@
-# 🎯 Entrega 2
+# 🎯 Entrega 3
 
-Repositorio correspondiente a la **Entrega 2** del trabajo práctico. En esta entrega se amplía el trabajo anterior incorporando:
+Repositorio correspondiente a la **Entrega 3**  [entrega3.md](./entrega3.md) del trabajo práctico. En esta entrega se amplía el trabajo anterior incorporando:
 
 - 🧱 Backend con **arquitectura limpia** (Express + TypeScript).  
 - 🌐 Frontend web con **React**, **Next.js** y **Redux**.  
-- 🤖 Bot de **Telegram** conectado al backend.  
+- 🤖 Bot de **Telegram** conectado al backend. (Deprecated) 
 - 🐳 Contenedorización con Docker y orquestación con Docker Compose.
+- 📄 Base de datos con MongoDB. 
 
 ---
 

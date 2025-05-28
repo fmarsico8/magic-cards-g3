@@ -112,4 +112,8 @@ export class Offer extends Ownable {
         return this.updatedAt;
     }
 
+    public setPublication(publication: Publication): void {
+        this.publication = publication;
+    }
+
 }

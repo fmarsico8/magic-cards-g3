@@ -26,16 +26,21 @@ export const PublicationMapper = {
     cardExchange: CardBase[],
     offers: Offer[]
   ): Publication {
-    return new Publication({
+    const publication = new Publication({
       id: doc._id.toString(),
       statusPublication: doc.statusPublication,
       owner,
       card,
       cardExchange,
-      offersExisting: offers,
+      offersExisting: [],
       valueMoney: doc.valueMoney,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt
     });
+    offers.forEach((o) => {
+      o.setPublication(publication);
+    });
+    publication.setOffersExisting(offers);
+    return publication;
   }
 };
