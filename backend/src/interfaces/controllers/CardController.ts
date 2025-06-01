@@ -9,10 +9,14 @@ export class CardController {
 
     public async createCard(req: Request, res: Response): Promise<void> {
         try {
+            console.log(req.body)
+            console.log(req.file)
             const userId = req.user?.userId;
+            const image = req.file;
             const cardData: CreateCardDTO = { 
                 ...req.body,
                 ownerId: userId,
+                image: image
             };
             const card = await this.cardService.createCard(cardData);
             res.status(201).json(card);

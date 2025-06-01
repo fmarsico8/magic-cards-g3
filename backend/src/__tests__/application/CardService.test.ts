@@ -54,7 +54,14 @@ describe('CardService', () => {
     const cardData: CreateCardDTO = {
       ownerId: testUser.getId(),
       cardBaseId: testCardBase.getId(),
-      urlImage: "http://example.com/image.png",
+      image: {
+        fieldname: 'image',
+        originalname: 'test-image.png',
+        encoding: '7bit',
+        mimetype: 'image/png',
+        buffer: Buffer.from('test-image-content'),
+        size: 1024
+      } as Express.Multer.File,
       statusCard: 100
     };
 
@@ -66,7 +73,7 @@ describe('CardService', () => {
     const result = await cardService.createCard(cardData);
 
     expect(result).toBeDefined();
-    expect(result.urlImage).toBe(cardData.urlImage);
+    expect(result.urlImage).toBeDefined();
     expect(mockCardRepository.save).toHaveBeenCalled();
   });
 
@@ -74,7 +81,14 @@ describe('CardService', () => {
     const cardData: CreateCardDTO = {
       ownerId: 'non-existent-id',
       cardBaseId: testCardBase.getId(),
-      urlImage: "http://example.com/image.png",
+      image: {
+        fieldname: 'image',
+        originalname: 'test-image.png',
+        encoding: '7bit',
+        mimetype: 'image/png',
+        buffer: Buffer.from('test-image-content'),
+        size: 1024
+      } as Express.Multer.File,
       statusCard: 100
     };
 

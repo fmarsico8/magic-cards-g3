@@ -50,7 +50,14 @@ describe('CardController', () => {
             const cardData: CreateCardDTO = {
                 cardBaseId: 'test-card-base-id',
                 statusCard: 1,
-                urlImage: 'http://example.com/image.png',
+                image: {
+                    fieldname: 'image',
+                    originalname: 'test-image.png',
+                    encoding: '7bit',
+                    mimetype: 'image/png',
+                    buffer: Buffer.from('test-image-content'),
+                    size: 1024
+                  } as Express.Multer.File,
                 ownerId: 'test-user-id'
             };
 
