@@ -41,12 +41,12 @@ export default function CreateCardPage() {
 
   // Form state for card details
   const [statusCard, setStatusCard] = useState<number>(5)
-  const [urlImage, setUrlImage] = useState<string>("")
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [submitError, setSubmitError] = useState("")
   const [formErrors, setFormErrors] = useState<{
     cardBase?: string
     statusCard?: string
-    urlImage?: string
+    image?: string
     game?: string
   }>({})
 
@@ -131,7 +131,7 @@ export default function CreateCardPage() {
     const errors: {
       cardBase?: string
       statusCard?: string
-      urlImage?: string
+      image?: string
       game?: string
     } = {}
 
@@ -148,8 +148,10 @@ export default function CreateCardPage() {
       errors.statusCard = "Status must be between 1 and 10"
     }
 
-    if (!urlImage || !urlImage.startsWith("http")) {
-      errors.urlImage = "Please enter a valid URL for the image"
+    if (!imageFile) {
+      errors.image = "Please select an image file"
+    } else if (!imageFile.type.startsWith('image/')) {
+      errors.image = "Please select a valid image file"
     }
 
     setFormErrors(errors)
@@ -175,12 +177,11 @@ export default function CreateCardPage() {
 
       dispatch(createCardStart())
 
-      // Use the service to create the card
       const cardData: CreateCardDTO = {
         cardBaseId: selectedCardBaseId,
-        statusCard,
-        urlImage,
-        ownerId: currentUser.id,
+        statusCard: statusCard,
+        image: imageFile!,
+        ownerId: currentUser.id
       }
 
       dispatch(createCard(cardData))
@@ -336,17 +337,22 @@ export default function CreateCardPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="urlImage" className="text-sm font-medium">
-                      Card Image URL
+                    <label htmlFor="image" className="text-sm font-medium">
+                      Card Image
                     </label>
                     <Input
-                      id="urlImage"
-                      placeholder="https://example.com/image.jpg"
-                      value={urlImage}
-                      onChange={(e) => setUrlImage(e.target.value)}
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setImageFile(file)
+                        }
+                      }}
                     />
-                    <p className="text-xs text-muted-foreground">Provide a URL to an image of your card</p>
-                    {formErrors.urlImage && <p className="text-sm text-red-500">{formErrors.urlImage}</p>}
+                    <p className="text-xs text-muted-foreground">Upload an image of your card</p>
+                    {formErrors.image && <p className="text-sm text-red-500">{formErrors.image}</p>}
                   </div>
 
                   <Button

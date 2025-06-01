@@ -26,7 +26,7 @@ export interface CardBaseFilterDTO {
 export interface CreateCardDTO {
   cardBaseId: string
   statusCard: number
-  image: string
+  image: File
   ownerId: string
 }
 

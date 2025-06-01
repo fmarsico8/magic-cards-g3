@@ -20,9 +20,13 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
 
   // Headers predeterminados
   let headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+
+  // Only set default Content-Type if not already set
+  if (!headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
 
   // Obtener el token de localStorage si está disponible (solo en cliente)
   if (typeof window !== "undefined") {
