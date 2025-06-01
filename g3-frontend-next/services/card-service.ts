@@ -37,11 +37,7 @@ export const cardService = {
     formData.append('image', cardData.image)
     formData.append('ownerId', cardData.ownerId)
 
-    return api.post<CardResponseDTO>("/cards", formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    return api.post<CardResponseDTO>("/cards", formData)
   },
 
   updateCard: async (cardId: string, cardData: CardUpdatedDTO) => {

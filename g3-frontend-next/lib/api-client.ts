@@ -23,8 +23,8 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     ...(options.headers as Record<string, string>),
   };
 
-  // Only set default Content-Type if not already set
-  if (!headers["Content-Type"]) {
+  // Only set default Content-Type if not already set and not sending FormData
+  if (!headers["Content-Type"] && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -101,7 +101,7 @@ export const api = {
     apiRequest<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     }),
 
   put: <T>(endpoint: string, data?: any, options?: RequestInit) =>
