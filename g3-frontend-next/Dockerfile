@@ -30,7 +30,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3000
-ENV NEXT_PUBLIC_API_URL=http://localhost:3001/api
 
 # Start standalone server
 CMD ["node", "server.js"]

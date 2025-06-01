@@ -11,9 +11,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
-      JWT_SECRET: your_jwt_secret_key
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key}
       JWT_EXPIRES_IN: 1h
-      MONGO_URI: mongodb://mongo:27017/deckTrade
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/deckTrade}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/healthz"]
@@ -27,6 +27,8 @@ services:
   mongo:
     image: mongo:6
     container_name: mongo
+    profiles:
+      - dev
     ports:
       - "27017:27017"
     volumes:
@@ -47,24 +49,6 @@ services:
     restart: unless-stopped
     networks:
       - app-network
-
-# opcional, puedes reactivar el servicio 'bot' si lo necesitas
-#  bot:
-#    build:
-#      context: ./bot
-#      dockerfile: Dockerfile
-#    container_name: magic-cards-bot
-#    environment:
-#      RUNNING_IN_DOCKER: true
-#    env_file:
-#      - ./bot/.env
-#    volumes:
-#      - ./logs:/usr/src/app/logs
-#    restart: unless-stopped
-#    depends_on:
-#      - app
-#    networks:
-#      - app-network
 
 volumes:
   mongo_data:
