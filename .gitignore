@@ -20,6 +20,9 @@ npm-debug.log*
 # Coverage reports
 **/coverage/
 
+# Uploads
+**/uploads/
+
 # Editor directories and files
 **/.idea/
 **/.vscode/

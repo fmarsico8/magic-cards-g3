@@ -1,7 +1,7 @@
 export interface CreateCardDTO {
     cardBaseId: string;
     statusCard: number;
-    urlImage: string;
+    image: Express.Multer.File;
     ownerId: string;
 }
 

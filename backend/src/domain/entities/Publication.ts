@@ -139,5 +139,9 @@ export class Publication extends Ownable {
     public setUpdatedAt(date : Date) {
       this.updatedAt = date;
     }
+    
+    public setOffersExisting(offers: Offer[]): void {
+      this.offersExisting = offers;
+    }
       
 } 

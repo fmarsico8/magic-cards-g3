@@ -31,7 +31,13 @@ export const cardService = {
   },
 
   createCard: async (cardData: CreateCardDTO) => {
-    return api.post<CardResponseDTO>("/cards", cardData)
+    const formData = new FormData()
+    formData.append('cardBaseId', cardData.cardBaseId)
+    formData.append('statusCard', cardData.statusCard.toString())
+    formData.append('image', cardData.image)
+    formData.append('ownerId', cardData.ownerId)
+
+    return api.post<CardResponseDTO>("/cards", formData)
   },
 
   updateCard: async (cardId: string, cardData: CardUpdatedDTO) => {

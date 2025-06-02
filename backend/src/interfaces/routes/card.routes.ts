@@ -4,6 +4,7 @@ import { CardService } from '../../application/services/CardService';
 import { cardRepository } from '../../infrastructure/provider/Container';
 import { JwtService } from '../../infrastructure/auth/jwt.service';
 import { AuthMiddleware } from '../middleware/auth.middleware';
+import { upload } from '../../infrastructure/middleware/upload.middleware';
 
 const cardService = new CardService(cardRepository);
 const cardController = new CardController(cardService);
@@ -14,7 +15,7 @@ const cardRouter = Router();
 
 cardRouter.use(authMiddleware.authenticate);
 
-cardRouter.post('/', cardController.createCard.bind(cardController));
+cardRouter.post('/', upload.single('image'), cardController.createCard.bind(cardController));
 cardRouter.get('/', cardController.getAllCardsPaginated.bind(cardController));
 cardRouter.get('/:id', cardController.getCard.bind(cardController));
 cardRouter.put('/:id', cardController.updateCard.bind(cardController));

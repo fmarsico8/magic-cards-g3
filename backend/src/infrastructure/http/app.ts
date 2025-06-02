@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import path from 'path';
+import fs from 'fs';
 
 import config from '../config/config';
 import logger from '../logging/logger';
@@ -20,6 +22,14 @@ class App {
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
+    this.ensureUploadsDirectory();
+  }
+
+  private ensureUploadsDirectory(): void {
+    const uploadsDir = '/app/uploads';
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
   }
 
   public async initialize(): Promise<void> {
@@ -35,6 +45,15 @@ class App {
     this.app.use(helmet());
     this.app.use(compression());
     
+    // Serve uploads folder in dev only - before API routes
+    if (config.isDevelopment) {
+      this.app.use('/uploads', (req, res, next) => {
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        next();
+      });
+      this.app.use('/uploads', express.static('/app/uploads'));
+    }
+
     // Setup request logging
     if (config.isDevelopment) {
       this.app.use(morgan('dev'));

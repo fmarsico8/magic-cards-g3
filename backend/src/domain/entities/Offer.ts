@@ -38,10 +38,6 @@ export class Offer extends Ownable {
             throw new Error("Money offer must be greater than 0");
         }
 
-        if(props.cardOffers) {
-            this.areMyCards(props.cardOffers, props.offerOwner);
-        }
-
         this.id = props.id || generateUUID();
         this.offerOwner = props.offerOwner;
         this.cardOffers = props.cardOffers;
@@ -110,6 +106,10 @@ export class Offer extends Ownable {
 
     public getUpdatedAt(): Date {
         return this.updatedAt;
+    }
+
+    public setPublication(publication: Publication): void {
+        this.publication = publication;
     }
 
 }

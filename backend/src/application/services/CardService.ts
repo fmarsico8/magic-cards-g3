@@ -6,6 +6,7 @@ import { UserService } from "./UserService";
 import { CardBaseService } from "./CardBaseService";
 import { Statistic, StatisticType } from "../../domain/entities/Stadistics";
 import { PaginatedResponseDTO, PaginationDTO } from "../dtos/PaginationDTO";
+import { storage } from "../../infrastructure/files/IStorageProvider";
 
 export class CardService {
     userService : UserService = new UserService(userRepository);
@@ -15,11 +16,13 @@ export class CardService {
     public async createCard(cardData: CreateCardDTO): Promise<CardResponseDTO> {
         const user = await this.userService.getSimpleUser(cardData.ownerId);
         const cardBase = await this.cardBaseService.getSimpleCardBase(cardData.cardBaseId);
-      
+        
+        const urlImage = await storage.uploadFile(cardData.image, cardData.image.originalname);
+
         const card = new Card({
             owner: user,
             cardBase: cardBase,
-            urlImage: cardData.urlImage,
+            urlImage: urlImage,
             statusCard: cardData.statusCard
         });
 
