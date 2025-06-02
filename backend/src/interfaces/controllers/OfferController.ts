@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
 import { OfferService} from '../../application/services/OfferService';
 import { CreateOfferDTO, OfferFilterDTO, OfferUpdatedDTO } from '../../application/dtos/OfferDTO';
-import { UnauthorizedException } from '../../domain/entities/exceptions/exceptions';
+import { UnauthorizedException } from '../../domain/entities/exceptions/HttpException';
 import { PaginationDTO } from '@/application/dtos/PaginationDTO';
-import { Offer } from '@/domain/entities/Offer';
 
 export class OfferController {
     constructor(private readonly offerService: OfferService) {}

@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { GameService } from '../../application/services/GameService';
 import { CreateGameDTO, UpdateGameDTO, GameFilterDTO} from '../../application/dtos/GameDTO';
-import { PaginationDTO } from '@/application/dtos/PaginationDTO';
-import { HandlerRequest } from '@/domain/entities/HandlerRequest';
+import { PaginationDTO } from '../../application/dtos/PaginationDTO';
+import { HandlerRequest } from '../../domain/entities/HandlerRequest';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class GameController {
   constructor(private readonly gameService: GameService) {}
@@ -10,6 +11,7 @@ export class GameController {
   public async createGame(req: Request, res: Response): Promise<void> {
     HandlerRequest.handle(req, res, async () => {
       const gameData: CreateGameDTO = req.body;
+      Validations.requiredField(gameData.name, 'Game name');
       const game = await this.gameService.createGame(gameData);
       return game;
     }, 201, true);
@@ -17,7 +19,7 @@ export class GameController {
 
   public async getGame(req: Request, res: Response): Promise<void> {
     HandlerRequest.handle(req, res, async () => {
-      const gameId = req.params.id;
+      const gameId = Validations.validateId(req.params.id, 'Game ID');
       const game = await this.gameService.getGame(gameId);
       return game;
     }, 200, true);
@@ -35,7 +37,6 @@ export class GameController {
       const GameFilterDTO = {
         name: req.query.game ? (req.query.game as string) : ""
       }
-
       const filters: PaginationDTO<GameFilterDTO> = {
         data: GameFilterDTO,
         limit: req.query.limit ? Number(req.query.limit) : undefined,
@@ -49,7 +50,7 @@ export class GameController {
 
   public async updateGame(req: Request, res: Response): Promise<void> {
     HandlerRequest.handle(req, res, async () => {
-      const gameId = req.params.id;
+      const gameId = Validations.validateId(req.params.id, 'Game ID');
       const gameData: UpdateGameDTO = req.body;
       const game = await this.gameService.updateGame(gameId, gameData);
       return game;
@@ -58,7 +59,7 @@ export class GameController {
 
   public async deleteGame(req: Request, res: Response): Promise<void> {
     HandlerRequest.handle(req, res, async () => {
-      const gameId = req.params.id;
+      const gameId = Validations.validateId(req.params.id, 'Game ID');
       await this.gameService.deleteGame(gameId);
       return;
     }, 204, false);

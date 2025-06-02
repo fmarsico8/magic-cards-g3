@@ -1,8 +1,8 @@
-import { NotFoundException } from '../../domain/entities/exceptions/HttpException';
 import { Game } from '../../domain/entities/Game';
 import { GameRepository } from '../../domain/repositories/GameRepository';
 import { CreateGameDTO, UpdateGameDTO, GameResponseDTO, GameFilterDTO } from '../dtos/GameDTO';
 import { PaginatedResponseDTO, PaginationDTO } from '../dtos/PaginationDTO';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class GameService {
   constructor(private readonly gameRepository: GameRepository) {}
@@ -17,12 +17,7 @@ export class GameService {
   }
 
   public async getGame(id: string): Promise<GameResponseDTO> {
-    const game = await this.gameRepository.findById(id);
-    
-    if (!game) {
-      throw new NotFoundException('Game not found');
-    }
-    
+    const game = Validations.ensureFound(await this.gameRepository.findById(id), 'Game');
     return this.toGameResponseDTO(game);
   }
 
@@ -43,11 +38,7 @@ export class GameService {
 }
 
   public async updateGame(id: string, gameData: UpdateGameDTO): Promise<GameResponseDTO> {
-    const existingGame = await this.gameRepository.findById(id);
-    
-    if (!existingGame) {
-      throw new NotFoundException('Game not found');
-    }
+    const existingGame = Validations.ensureFound(await this.gameRepository.findById(id), 'Game');
 
     const updatedGame = new Game({
       id: existingGame.getId(),
@@ -59,12 +50,7 @@ export class GameService {
   }
 
   public async deleteGame(id: string): Promise<boolean> {
-    const existingGame = await this.gameRepository.findById(id);
-    
-    if (!existingGame) {
-      throw new NotFoundException('Game not found');
-    }
-
+    Validations.ensureFound(await this.gameRepository.findById(id), 'Game');
     return this.gameRepository.delete(id);
   }
 

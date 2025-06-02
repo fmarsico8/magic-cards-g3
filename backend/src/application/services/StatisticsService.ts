@@ -3,7 +3,7 @@ import { StatisticsRepository } from "../../domain/repositories/StatisticsReposi
 import {RangeStatisticDTO, StatisticResponseDTO } from "../dtos/StatisticsDTO";
 import { userRepository } from "../../infrastructure/provider/Container";
 import { UserService } from "./UserService";
-import { UnauthorizedException } from "../../domain/entities/exceptions/exceptions";
+import { UnauthorizedException } from "../../domain/entities/exceptions/HttpException";
 
 export class StatisticsService {
     userService : UserService = new UserService(userRepository);

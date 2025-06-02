@@ -4,7 +4,6 @@ import { OfferService } from '../../../application/services/OfferService';
 import { CreateOfferDTO, OfferUpdatedDTO, OfferResponseDTO } from '../../../application/dtos/OfferDTO';
 import { offerRepository } from '../../../infrastructure/provider/Container';
 
-// Mock the repositories
 jest.mock('../../../infrastructure/repositories/Container', () => ({
     offerRepository: {
         save: jest.fn(),

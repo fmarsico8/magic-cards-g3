@@ -1,5 +1,5 @@
 import { User } from "../entities/User";
-import { UnauthorizedException } from "./exceptions/exceptions";
+import { UnauthorizedException } from "./exceptions/HttpException";
 
 export class Ownable {
     protected owner: User;

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { CreatePublicationDTO, PublicationFilterDTO, PublicationUpdatedDTO } from "../../application/dtos/PublicationDTO";
 import { PublicationService } from "../../application/services/PublicationService";
-import { UnauthorizedException } from '../../domain/entities/exceptions/exceptions';
+import { UnauthorizedException } from '../../domain/entities/exceptions/HttpException';
 import { PaginationDTO } from '@/application/dtos/PaginationDTO';
 
 export class PublicationController {

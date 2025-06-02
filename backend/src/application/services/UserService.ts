@@ -60,7 +60,7 @@ export class UserService {
     const adminUser = await this.getSimpleUser(adminId)
 
     if (!adminUser.isAdmin()) {
-      throw new UnauthorizedException('Only administrators can create users');
+      throw new UnauthorizedException('Only admins can get users');
     }
 
     const user = await this.getUser(email);

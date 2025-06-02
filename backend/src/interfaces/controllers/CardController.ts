@@ -1,7 +1,7 @@
 import { CardFilterDTO, CardUpdatedDTO, CreateCardDTO } from '@/application/dtos/CardsDTO';
 import { CardService } from '@/application/services/CardService';
 import { Request, Response } from 'express';
-import { UnauthorizedException } from '../../domain/entities/exceptions/exceptions';
+import { UnauthorizedException } from '../../domain/entities/exceptions/HttpException';
 import { PaginationDTO } from '@/application/dtos/PaginationDTO';
 
 export class CardController {

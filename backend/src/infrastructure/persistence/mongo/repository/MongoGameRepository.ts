@@ -4,6 +4,8 @@ import { GameModel } from "../models/GameModel";
 import { toGameEntity, toGameDocument } from "../mappers/game.mapper";
 import { PaginationDTO, PaginatedResponseDTO } from "../../../../application/dtos/PaginationDTO";
 import { GameFilterDTO } from "../../../../application/dtos/GameDTO";
+import { isValidObjectId } from "mongoose";
+import { BadRequestException } from "../../../../domain/entities/exceptions/HttpException";
 
 export class MongoGameRepository implements GameRepository {
   private gameModel: GameModel;
@@ -28,11 +30,19 @@ export class MongoGameRepository implements GameRepository {
   }
 
   async findById(id: string): Promise<Game | undefined> {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('Invalid game ID format');
+    }
+    
     const doc = await this.gameModel.findById(id);
     return doc ? toGameEntity(doc) : undefined;
   }
 
   async findByIds(ids: string[]): Promise<Game[]> {
+    if (ids.some(id => !isValidObjectId(id))) {
+      throw new BadRequestException('Invalid game ID format');
+    }
+    
     const docs = await this.gameModel.findByIds(ids);
     return docs.map(toGameEntity);
   }

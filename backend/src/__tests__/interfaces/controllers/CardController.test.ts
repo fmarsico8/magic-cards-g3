@@ -4,7 +4,6 @@ import { CardService } from '../../../application/services/CardService';
 import { CreateCardDTO, CardUpdatedDTO, CardResponseDTO } from '../../../application/dtos/CardsDTO';
 import { cardRepository } from '../../../infrastructure/provider/Container';
 
-// Mock the repositories
 jest.mock('../../../infrastructure/repositories/Container', () => ({
     cardRepository: {
         save: jest.fn(),
@@ -16,7 +15,6 @@ jest.mock('../../../infrastructure/repositories/Container', () => ({
     },
 }));
 
-// Mock the CardService methods
 jest.mock('../../../application/services/CardService');
 
 describe('CardController', () => {
