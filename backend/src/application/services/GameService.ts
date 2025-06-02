@@ -1,3 +1,4 @@
+import { NotFoundException } from '../../domain/entities/exceptions/HttpException';
 import { Game } from '../../domain/entities/Game';
 import { GameRepository } from '../../domain/repositories/GameRepository';
 import { CreateGameDTO, UpdateGameDTO, GameResponseDTO, GameFilterDTO } from '../dtos/GameDTO';
@@ -19,7 +20,7 @@ export class GameService {
     const game = await this.gameRepository.findById(id);
     
     if (!game) {
-      throw new Error('Game not found');
+      throw new NotFoundException('Game not found');
     }
     
     return this.toGameResponseDTO(game);
@@ -45,10 +46,9 @@ export class GameService {
     const existingGame = await this.gameRepository.findById(id);
     
     if (!existingGame) {
-      throw new Error('Game not found');
+      throw new NotFoundException('Game not found');
     }
 
-    // Create a new game object with updated properties
     const updatedGame = new Game({
       id: existingGame.getId(),
       name: gameData.name || existingGame.getName(),
@@ -62,7 +62,7 @@ export class GameService {
     const existingGame = await this.gameRepository.findById(id);
     
     if (!existingGame) {
-      throw new Error('Game not found');
+      throw new NotFoundException('Game not found');
     }
 
     return this.gameRepository.delete(id);
