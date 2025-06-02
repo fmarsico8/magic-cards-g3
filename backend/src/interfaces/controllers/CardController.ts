@@ -1,38 +1,32 @@
-import { CardFilterDTO, CardUpdatedDTO, CreateCardDTO } from '@/application/dtos/CardsDTO';
-import { CardService } from '@/application/services/CardService';
+import { CardFilterDTO, CardUpdatedDTO, CreateCardDTO } from '../../application/dtos/CardsDTO';
+import { CardService } from '../../application/services/CardService';
 import { Request, Response } from 'express';
-import { UnauthorizedException } from '../../domain/entities/exceptions/HttpException';
-import { PaginationDTO } from '@/application/dtos/PaginationDTO';
+import { PaginationDTO } from '../../application/dtos/PaginationDTO';
+import { HandlerRequest } from '../../domain/entities/HandlerRequest';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class CardController {
     constructor(private readonly cardService: CardService) {}
 
     public async createCard(req: Request, res: Response): Promise<void> {
-        try {
-            console.log(req.body)
-            console.log(req.file)
-            const userId = req.user?.userId;
+        HandlerRequest.handle(req, res, async () => {
+            const user = Validations.requireUser(req.user);
+            Validations.requiredField(req.body.cardBaseId, 'Card Base ID');
+            Validations.requiredField(req.body.status, 'Status');
+            Validations.requiredField(req.file, 'Image');
             const image = req.file;
             const cardData: CreateCardDTO = { 
                 ...req.body,
-                ownerId: userId,
+                ownerId: user.userId,
                 image: image
             };
             const card = await this.cardService.createCard(cardData);
-            res.status(201).json(card);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return card;
+        }, 201, true);
     }
 
     public async getAllCards(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const filters: CardFilterDTO = {
                 name: req.query.name ? (req.query.name as string) : undefined,
                 game: req.query.game ? (req.query.game as string) : undefined,
@@ -40,24 +34,16 @@ export class CardController {
             };
         
             const cards = await this.cardService.getAllCards(filters);
-            res.status(200).json(cards);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return cards;
+        }, 200, true);
     }
 
     public async getAllCardsPaginated(req: Request, res: Response): Promise<void> {
-        try {
-            const userId = req.user?.userId;
+        HandlerRequest.handle(req, res, async () => {
+            const user = Validations.requireUser(req.user);
             const filters: PaginationDTO<CardFilterDTO> = {
                 data: {
-                    ownerId: userId,
+                    ownerId: user.userId,
                     name: req.query.name ? (req.query.name as string) : undefined,
                     game: req.query.game ? (req.query.game as string) : undefined,
                 },
@@ -66,77 +52,41 @@ export class CardController {
             };
 
             const cards = await this.cardService.getAllCardsPaginated(filters);
-            res.status(200).json(cards);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return cards;
+        }, 200, true);
     }
 
     public async getCard(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const id = req.params.id;
+            Validations.requiredField(id, 'Card ID');
             const card = await this.cardService.getCard(id)
-            res.status(200).json(card)
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-              res.status(400).json({ error: error.message });
-            } else {
-              res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-          }   
+            return card;
+        }, 200, true);
     }
 
     public async updateCard(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const id = req.params.id;
-            const userId = req.user?.userId;
+            Validations.requiredField(id, 'Card ID');
+            const user = Validations.requireUser(req.user);
             const cardData : CardUpdatedDTO = {
                 ...req.body,
-                ownerId: userId
+                ownerId: user.userId
             }
             const card = await this.cardService.updateCard(id, cardData);
-            res.status(200).json(card);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-              res.status(400).json({ error: error.message });
-            } else {
-              res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-          }   
+            return card;
+        }, 200, true);
     }
 
     public async deleteCard(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const id = req.params.id;
-            const userId = req.user?.userId;
-            if (!userId) {
-                throw new UnauthorizedException('User not authenticated');
-            }
-            const result = await this.cardService.deleteCard(userId, id);
-            if (result) {
-                res.status(204).send();
-            } else {
-                res.status(404).json({ error: 'Card not found' });
-            }
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-              res.status(400).json({ error: error.message });
-            } else {
-              res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-          }   
+            Validations.requiredField(id, 'Card ID');
+            const user = Validations.requireUser(req.user);
+            const result = await this.cardService.deleteCard(user.userId, id);
+            return result;
+        }, 204, false);
     }
 }
 

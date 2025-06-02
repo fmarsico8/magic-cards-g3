@@ -7,7 +7,7 @@ export class Validations {
     }
   }
 
-  static validateId(id: string, label = 'ID'): string {
+  static validateId(id?: string, label = 'ID'): string {
     if (!id || id.trim() === '') {
       throw new BadRequestException(`${label} is required`);
     }

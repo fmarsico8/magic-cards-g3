@@ -1,3 +1,4 @@
+import { Validations } from '../../infrastructure/utils/Validations';
 import { CardBase } from '../../domain/entities/CardBase';
 import { CardBaseRepository } from '../../domain/repositories/CardBaseRepository';
 import { GameRepository } from '../../domain/repositories/GameRepository';
@@ -123,8 +124,7 @@ export class CardBaseService {
   }
 
   public async getSimpleCardBase(id: string): Promise<CardBase> {
-    const cardBase = await this.cardBaseRepository.findById(id);
-    if (!cardBase) throw new Error("Base Card not found");
-    return cardBase;
+    const cardBase = await this.cardBaseRepository.findById(Validations.validateId(id, 'Base Card'));
+    return Validations.ensureFound(cardBase, 'Base Card');
   }
 } 

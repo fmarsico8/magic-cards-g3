@@ -6,6 +6,7 @@ import { statisticsRepository } from '../../infrastructure/provider/Container';
 import bcrypt from 'bcrypt';
 import { UnauthorizedException, UserNotFoundError, ConflictException, NotFoundException } from '../../domain/entities/exceptions/HttpException';
 import { Role } from '../../domain/entities/Role';
+import { Validations } from '@/infrastructure/utils/Validations';
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -116,10 +117,8 @@ export class UserService {
   }
 
   public async getSimpleUser(id?: string): Promise<User> {
-    if (!id) throw new UserNotFoundError("User ID is required");
-    const user = await this.userRepository.findById(id);
-    if (!user) throw new UserNotFoundError("User not found");
-    return user;
+    const user = await this.userRepository.findById(Validations.validateId(id, 'User ID'));
+    return Validations.ensureFound(user, 'User');
   }
 
 
