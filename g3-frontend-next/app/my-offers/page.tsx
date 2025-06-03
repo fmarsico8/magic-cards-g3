@@ -131,7 +131,6 @@ export default function MyOffersPage() {
                           </div>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 pb-2">
-                          <p className="text-sm mb-1">Publication ID: {offer.publicationId}</p>
                           <p className="text-xs text-muted-foreground">Owner: {offer.ownerName}</p>
                           <p className="text-xs text-muted-foreground">
                             Offered: {new Date(offer.createdAt).toISOString().slice(0, 10)}
