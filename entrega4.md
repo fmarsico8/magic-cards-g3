@@ -7,10 +7,18 @@ Este repositorio corresponde a la **Entrega 4** de **DeckTrade**. En esta entreg
 ## 📚 Referencias
 
 - Decisiones de infraestructura cloud (AWS): [infraestructura.md](./infraestructura.md)  
-- Acceso a la aplicación en producción: [http://54.277.126.233:3000/](http://54.227.126.233/)  
+- Acceso a la aplicación en producción: [http://54.227.126.233:3000/](http://54.227.126.233:3000/)  
 - Credenciales de usuario administrador por defecto:
   - **Email**: `admin@example.com`
   - **Contraseña**: `admin`
+
+### 🧪 .env de ejemplo para entorno local
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+MONGO_URI=mongodb://mongo:27017/deckTrade
+JWT_SECRET=your_jwt_secret_key
+NODE_ENV=development
 
 ---
 
