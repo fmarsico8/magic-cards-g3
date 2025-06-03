@@ -1,13 +1,15 @@
-# 🎯 Entrega 3
 
-Repositorio correspondiente a la **Entrega 3**  [entrega3.md](./entrega3.md) del trabajo práctico. En esta entrega se amplía el trabajo anterior incorporando:
+# 🎯 Entrega 4
+
+Repositorio correspondiente a la **Entrega 4**  [entrega4.md](./entrega4.md) del trabajo práctico. En esta entrega se amplía el trabajo anterior incorporando:
 
 - 🧱 Backend con **arquitectura limpia** (Express + TypeScript).  
 - 🌐 Frontend web con **React**, **Next.js** y **Redux**.  
 - 🤖 Bot de **Telegram** conectado al backend. (Deprecated) 
 - 🐳 Contenedorización con Docker y orquestación con Docker Compose.
 - 📄 Base de datos con MongoDB. 
-
+- ☁️ La aplicación se encuentra desplegada en la nube utilizando **2 instancias EC2**: una para la app y otra para MongoDB.  
+- Link del aplicativo en cloud: [http://54.277.126.233:3000/](http://54.227.126.233/)  
 ---
 
 ## 📦 Entrega 1 - Backend
