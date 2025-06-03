@@ -2,7 +2,7 @@ import { CardFilterDTO, CardUpdatedDTO, CreateCardDTO } from '../../application/
 import { CardService } from '../../application/services/CardService';
 import { Request, Response } from 'express';
 import { PaginationDTO } from '../../application/dtos/PaginationDTO';
-import { HandlerRequest } from '../../domain/entities/HandlerRequest';
+import { HandlerRequest } from './HandlerRequest';
 import { Validations } from '../../infrastructure/utils/Validations';
 
 export class CardController {
@@ -12,7 +12,7 @@ export class CardController {
         HandlerRequest.handle(req, res, async () => {
             const user = Validations.requireUser(req.user);
             Validations.requiredField(req.body.cardBaseId, 'Card Base ID');
-            Validations.requiredField(req.body.status, 'Status');
+            Validations.requiredField(req.body.statusCard, 'Status');
             Validations.requiredField(req.file, 'Image');
             const image = req.file;
             const cardData: CreateCardDTO = { 

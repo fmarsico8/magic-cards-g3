@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { OfferService} from '../../application/services/OfferService';
 import { CreateOfferDTO, OfferFilterDTO, OfferUpdatedDTO } from '../../application/dtos/OfferDTO';
 import { PaginationDTO } from '../../application/dtos/PaginationDTO';
-import { HandlerRequest } from '../../domain/entities/HandlerRequest';
+import { HandlerRequest } from './HandlerRequest';
 import { Validations } from '../../infrastructure/utils/Validations';
 
 export class OfferController {

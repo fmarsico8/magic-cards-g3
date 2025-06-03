@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { GameService } from '../../application/services/GameService';
 import { CreateGameDTO, UpdateGameDTO, GameFilterDTO} from '../../application/dtos/GameDTO';
 import { PaginationDTO } from '../../application/dtos/PaginationDTO';
-import { HandlerRequest } from '../../domain/entities/HandlerRequest';
+import { HandlerRequest } from './HandlerRequest';
 import { Validations } from '../../infrastructure/utils/Validations';
 
 export class GameController {

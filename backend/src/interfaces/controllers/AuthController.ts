@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../../application/services/AuthService';
 import { CreateUserDTO } from '../../application/dtos/UserDTO';
-import { HandlerRequest } from '../../domain/entities/HandlerRequest';
-import { UnauthorizedException } from '../../domain/entities/exceptions/HttpException';
+import { HandlerRequest } from './HandlerRequest';
 import { Validations } from '../../infrastructure/utils/Validations';
 
 export class AuthController {

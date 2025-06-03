@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { CardBaseService } from '../../application/services/CardBaseService';
 import { CardBaseFilterDTO, CreateCardBaseDTO, UpdateCardBaseDTO } from '../../application/dtos/CardBaseDTO';
 import { PaginationDTO } from '../../application/dtos/PaginationDTO';
-import { HandlerRequest } from '../../domain/entities/HandlerRequest';
+import { HandlerRequest } from './HandlerRequest';
 import { Validations } from '../../infrastructure/utils/Validations';
 
 export class CardBaseController {
