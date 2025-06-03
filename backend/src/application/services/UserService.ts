@@ -4,9 +4,9 @@ import { UserRepository } from '../../domain/repositories/UserRepository';
 import { CreateUserDTO, UpdateUserDTO, UserResponseDTO } from '../dtos/UserDTO';
 import { statisticsRepository } from '../../infrastructure/provider/Container';
 import bcrypt from 'bcrypt';
-import { UnauthorizedException, UserNotFoundError, ConflictException, NotFoundException } from '../../domain/entities/exceptions/HttpException';
+import { UnauthorizedException, ConflictException, NotFoundException } from '../../domain/entities/exceptions/HttpException';
 import { Role } from '../../domain/entities/Role';
-import { Validations } from '@/infrastructure/utils/Validations';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}

@@ -27,6 +27,14 @@ export class Validations {
     }
     return user;
   }
+
+  static ensureAllIdsFound(found: string[], requested: string[], entity: string): void {
+    const missing = requested.filter(id => !found.includes(id));
+    if (missing.length > 0) {
+      throw new BadRequestException(`Invalid ${entity}s with IDs: ${missing.join(', ')}`);
+    }
+  }
+  
   
   
 }

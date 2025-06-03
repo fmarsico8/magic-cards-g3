@@ -17,12 +17,9 @@ export class CardBaseService {
   }
 
   public async createCardBase(cardBaseData: CreateCardBaseDTO): Promise<CardBaseResponseDTO> {
-    const game = await this.gameRepository.findById(cardBaseData.gameId);
+    let game = await this.gameRepository.findById(cardBaseData.gameId);
+    game = Validations.ensureFound(game, 'Game');
     
-    if (!game) {
-      throw new Error('Game not found');
-    }
-
     const cardBase = new CardBase({
       game,
       nameCard: cardBaseData.nameCard,
@@ -33,29 +30,20 @@ export class CardBaseService {
   }
 
   public async getCardBase(id: string): Promise<CardBaseResponseDTO> {
-    const cardBase = await this.cardBaseRepository.findById(id);
-    
-    if (!cardBase) {
-      throw new Error('CardBase not found');
-    }
-    
+    let cardBase = await this.cardBaseRepository.findById(id);
+    cardBase = Validations.ensureFound(cardBase, 'CardBase');
     return this.toCardBaseResponseDTO(cardBase);
   }
 
   public async getAllCardBases(gameId?: string): Promise<CardBaseResponseDTO[]> {
-    // If gameId is provided, filter by game
     if (gameId) {
-      const game = await this.gameRepository.findById(gameId);
-      
-      if (!game) {
-        throw new Error('Game not found');
-      }
-      
-      const cardBases = await this.cardBaseRepository.findByGame(game);
+      let game = await this.gameRepository.findById(gameId);
+      game = Validations.ensureFound(game, 'Game');
+      let cardBases = await this.cardBaseRepository.findByGame(game);
+      cardBases = cardBases.map(cardBase => Validations.ensureFound(cardBase, 'CardBase'));
       return cardBases.map(cardBase => this.toCardBaseResponseDTO(cardBase));
     }
     
-    // Otherwise, return all card bases
     const cardBases = await this.cardBaseRepository.findAll();
     return cardBases.map(cardBase => this.toCardBaseResponseDTO(cardBase));
   }
@@ -72,22 +60,14 @@ export class CardBaseService {
   }
 
   public async updateCardBase(id: string, cardBaseData: UpdateCardBaseDTO): Promise<CardBaseResponseDTO> {
-    const existingCardBase = await this.cardBaseRepository.findById(id);
-    
-    if (!existingCardBase) {
-      throw new Error('CardBase not found');
-    }
-
+    let existingCardBase = await this.cardBaseRepository.findById(id);
+    existingCardBase = Validations.ensureFound(existingCardBase, 'CardBase');
     let game = existingCardBase.getGame();
-    
     if (cardBaseData.gameId) {
-      const newGame = await this.gameRepository.findById(cardBaseData.gameId);
-      if (!newGame) {
-        throw new Error('Game not found');
-      }
+      let newGame = await this.gameRepository.findById(cardBaseData.gameId);
+      newGame = Validations.ensureFound(newGame, 'Game');
       game = newGame;
     }
-
     const updatedCardBase = new CardBase({
       id: existingCardBase.getId(),
       game,
@@ -99,12 +79,8 @@ export class CardBaseService {
   }
 
   public async deleteCardBase(id: string): Promise<boolean> {
-    const existingCardBase = await this.cardBaseRepository.findById(id);
-    
-    if (!existingCardBase) {
-      throw new Error('CardBase not found');
-    }
-
+    let existingCardBase = await this.cardBaseRepository.findById(id);
+    existingCardBase = Validations.ensureFound(existingCardBase, 'CardBase');
     return this.cardBaseRepository.delete(id);
   }
 
