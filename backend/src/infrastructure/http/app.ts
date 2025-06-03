@@ -12,7 +12,7 @@ import apiRoutes from '../../interfaces/routes';
 import { connectToDatabase } from '../database/mongo.config';
 import { UserService } from '../../application/services/UserService';
 import { userRepository } from '../../infrastructure/provider/Container';
-import { UserAlreadyExistsError } from '../../domain/entities/exceptions/exceptions';
+import { UserAlreadyExistsError } from '../../domain/entities/exceptions/HttpException';
 
 class App {
   public app: Application;

@@ -1,106 +1,67 @@
 import { Request, Response } from 'express';
 import { GameService } from '../../application/services/GameService';
 import { CreateGameDTO, UpdateGameDTO, GameFilterDTO} from '../../application/dtos/GameDTO';
-import { PaginationDTO } from '@/application/dtos/PaginationDTO';
+import { PaginationDTO } from '../../application/dtos/PaginationDTO';
+import { HandlerRequest } from './HandlerRequest';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   public async createGame(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const gameData: CreateGameDTO = req.body;
+      Validations.requiredField(gameData.name, 'Game name');
       const game = await this.gameService.createGame(gameData);
-      res.status(201).json(game);
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return game;
+    }, 201, true);
   }
 
   public async getGame(req: Request, res: Response): Promise<void> {
-    try {
-      const gameId = req.params.id;
+    HandlerRequest.handle(req, res, async () => {
+      const gameId = Validations.validateId(req.params.id, 'Game ID');
       const game = await this.gameService.getGame(gameId);
-      res.status(200).json(game);
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Game not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return game;
+    }, 200, true);
   }
 
   public async getAllGames(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const games = await this.gameService.getAllGames();
-      res.status(200).json(games);
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return games;
+    }, 200, true);
   }
 
   public async getAllGamesPaginated(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const GameFilterDTO = {
         name: req.query.game ? (req.query.game as string) : ""
       }
-
       const filters: PaginationDTO<GameFilterDTO> = {
         data: GameFilterDTO,
         limit: req.query.limit ? Number(req.query.limit) : undefined,
         offset: req.query.offset ? Number(req.query.offset) : undefined,
     };
       const games = await this.gameService.getAllGamesPaginated(filters);
-      res.status(200).json(games);
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return games;
+    }, 200, true);
   }
 
+
   public async updateGame(req: Request, res: Response): Promise<void> {
-    try {
-      const gameId = req.params.id;
+    HandlerRequest.handle(req, res, async () => {
+      const gameId = Validations.validateId(req.params.id, 'Game ID');
       const gameData: UpdateGameDTO = req.body;
       const game = await this.gameService.updateGame(gameId, gameData);
-      res.status(200).json(game);
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Game not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return game;
+    }, 200, true);
   }
 
   public async deleteGame(req: Request, res: Response): Promise<void> {
-    try {
-      const gameId = req.params.id;
+    HandlerRequest.handle(req, res, async () => {
+      const gameId = Validations.validateId(req.params.id, 'Game ID');
       await this.gameService.deleteGame(gameId);
-      res.status(204).send();
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Game not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return;
+    }, 204, false);
   }
 } 

@@ -7,6 +7,7 @@ import { UserService } from "./UserService";
 import { StatusOffer } from "../../domain/entities/StatusOffer";
 import { Statistic, StatisticType } from "../../domain/entities/Stadistics";
 import { PaginatedResponseDTO, PaginationDTO } from "../dtos/PaginationDTO";
+import { Validations } from "../../infrastructure/utils/Validations";
 
 
 export class OfferService {
@@ -14,23 +15,17 @@ export class OfferService {
     constructor(private readonly offerRepository: OfferRepository) {}
 
     public async createOffer(offerData: CreateOfferDTO): Promise<OfferResponseDTO> {
-        const publication = await publicationRepository.findById(offerData.publicationId);
-        if (!publication) {
-            throw new Error('Publication not found');
-        }
-        const offerOwner = await userRepository.findById(offerData.offerOwnerId);
-        if (!offerOwner) {
-            throw new Error('Offer owner not found');
-        }
+        let publication = await publicationRepository.findById(offerData.publicationId);
+        publication = Validations.ensureFound(publication, 'Publication');
+        let offerOwner = await userRepository.findById(offerData.offerOwnerId);
+        offerOwner = Validations.ensureFound(offerOwner, 'Offer owner');
 
         let cardOffers: Card[] | undefined;       
 
         if(offerData.cardExchangeIds) {
             cardOffers = await cardRepository.findByCardsByIds(offerData.cardExchangeIds);
             if(cardOffers && cardOffers.length !== offerData.cardExchangeIds.length) {
-                const foundCardIds = cardOffers.map(card => card.getId());
-                const invalidCardIds = offerData.cardExchangeIds.filter(id => !foundCardIds.includes(id));
-                throw new Error(`Invalid cards with IDs: ${invalidCardIds.join(', ')}`);
+                Validations.ensureAllIdsFound(cardOffers.map(card => card.getId()), offerData.cardExchangeIds, 'Card');
             }
             if (cardOffers) {
                 cardOffers.forEach((card: Card) => card.validateOwnership(offerOwner,"Card"));
@@ -47,7 +42,7 @@ export class OfferService {
         publication.addOffer(offer);
         await publicationRepository.update(publication);
         await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_TOTAL, new Date(), 1));
-        this.offerRepository.save(offer);
+        await this.offerRepository.save(offer);
 
         return this.toOfferResponseDTO(offer);
     }
@@ -78,21 +73,18 @@ export class OfferService {
     }
 
     public async getOffer(id: string): Promise<OfferResponseDTO | null>{
-        const offer = await this.offerRepository.findById(id);
-        if (!offer) {
-            return null;
-        }
+        let offer = await this.offerRepository.findById(id);
+        offer = Validations.ensureFound(offer, 'Offer');
         return this.toOfferResponseDTO(offer);
     }
 
     public async updateOffer(offerId: string, offerData: OfferUpdatedDTO): Promise<OfferResponseDTO> {
-        const offer = await this.offerRepository.findById(offerId);
+        let offer = await this.offerRepository.findById(offerId);
+        offer = Validations.ensureFound(offer, 'Offer');
         const user = await this.userService.getSimpleUser(offerData.userId);
-        const publication = await publicationRepository.findById(offerData.publicationId);
+        let publication = await publicationRepository.findById(offerData.publicationId);
+        publication = Validations.ensureFound(publication, 'Publication');
 
-        if (!offer || !publication) {   
-            throw new Error('Offer or publication not found');
-        }
         publication.validateOwnership(user, "publication");
 
         if(offerData.statusOffer === StatusOffer.ACCEPTED) {
@@ -108,12 +100,11 @@ export class OfferService {
             const rejectedOffer = publication.rejectOffer(offer);
             await publicationRepository.update(publication);
             await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_REJECTED, new Date(), 1));
-
-            this.offerRepository.update(rejectedOffer);
+            await this.offerRepository.update(rejectedOffer);
             return this.toOfferResponseDTO(rejectedOffer);
         }
         
-        this.offerRepository.update(offer);
+        await this.offerRepository.update(offer);
         return this.toOfferResponseDTO(offer);
     }
 
@@ -140,7 +131,9 @@ export class OfferService {
     
 
     public async getSimpleOffer(id: string) : Promise<Offer | null> {
-        return await this.offerRepository.findById(id);
+        let offer = await this.offerRepository.findById(id);
+        offer = Validations.ensureFound(offer, 'Offer');
+        return offer;
     }
     
 }   

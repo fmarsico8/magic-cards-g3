@@ -4,8 +4,9 @@ import { UserRepository } from '../../domain/repositories/UserRepository';
 import { CreateUserDTO, UpdateUserDTO, UserResponseDTO } from '../dtos/UserDTO';
 import { statisticsRepository } from '../../infrastructure/provider/Container';
 import bcrypt from 'bcrypt';
-import { UserAlreadyExistsError, UnauthorizedException, UserNotFoundError } from '../../domain/entities/exceptions/exceptions';
+import { UnauthorizedException, ConflictException, NotFoundException } from '../../domain/entities/exceptions/HttpException';
 import { Role } from '../../domain/entities/Role';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -13,7 +14,7 @@ export class UserService {
   public async createUser(userData: CreateUserDTO): Promise<User>{
     const existingUser = await this.userRepository.findByEmail(userData.email);
     if (existingUser) {
-      throw new UserAlreadyExistsError('User with this email already exists');
+      throw new ConflictException('User with this email already exists');
     }
     const hashedPassword = await this.hashPassword(userData.password);
   
@@ -50,7 +51,7 @@ export class UserService {
     const user = await this.userRepository.findByEmail(email);
     
     if (!user) {
-      throw new UserNotFoundError('User not found by Email');
+      throw new NotFoundException('User not found by Email');
     }
 
     return user;
@@ -60,7 +61,7 @@ export class UserService {
     const adminUser = await this.getSimpleUser(adminId)
 
     if (!adminUser.isAdmin()) {
-      throw new UnauthorizedException('Only administrators can create users');
+      throw new UnauthorizedException('Only admins can get users');
     }
 
     const user = await this.getUser(email);
@@ -76,7 +77,7 @@ export class UserService {
     const existingUser = await this.getSimpleUser(toUpdateUserId);
 
     if (existingUser.getId() != user.getId() || !user.isAdmin()) {
-      throw new UnauthorizedException('Only onceself or admins can update users');
+      throw new UnauthorizedException('Only one self or admins can update users');
     }
   
     if (userData.name) {
@@ -86,7 +87,7 @@ export class UserService {
     if (userData.email) {
       const userWithEmail = await this.userRepository.findByEmail(userData.email);
       if (userWithEmail && userWithEmail.getId() !== toUpdateUserId) {
-        throw new Error('Email is already in use');
+        throw new ConflictException('Email is already in use');
       }
       existingUser.setEmail(userData.email);
     }
@@ -116,10 +117,8 @@ export class UserService {
   }
 
   public async getSimpleUser(id?: string): Promise<User> {
-    if (!id) throw new UserNotFoundError("User ID is required");
-    const user = await this.userRepository.findById(id);
-    if (!user) throw new UserNotFoundError("User not found");
-    return user;
+    const user = await this.userRepository.findById(Validations.validateId(id, 'User ID'));
+    return Validations.ensureFound(user, 'User');
   }
 
 

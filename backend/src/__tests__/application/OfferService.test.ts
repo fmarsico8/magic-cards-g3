@@ -10,9 +10,8 @@ import { Game } from "../../domain/entities/Game";
 import { Offer } from "../../domain/entities/Offer";
 import { StatusOffer } from "../../domain/entities/StatusOffer";
 import { StatusPublication } from "../../domain/entities/StatusPublication";
-import { UnauthorizedException } from "../../domain/entities/exceptions/exceptions";
 import { OfferFilterDTO } from "../../application/dtos/OfferDTO";
-// Mock the repositories
+
 jest.mock("../../infrastructure/repositories/Container", () => ({
   userRepository: {
     findById: jest.fn(),
