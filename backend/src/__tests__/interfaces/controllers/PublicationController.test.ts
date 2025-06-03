@@ -4,7 +4,6 @@ import { PublicationService } from '../../../application/services/PublicationSer
 import { CreatePublicationDTO, PublicationFilterDTO, PublicationUpdatedDTO, PublicationResponseDTO } from '../../../application/dtos/PublicationDTO';
 import { PublicationRepository } from '../../../domain/repositories/PublicationRepository';
 
-// Mock the PublicationService
 jest.mock('../../../application/services/PublicationService');
 
 describe('PublicationController', () => {

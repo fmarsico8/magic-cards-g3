@@ -1,34 +1,28 @@
 import { Request, Response } from 'express';
 import { CreatePublicationDTO, PublicationFilterDTO, PublicationUpdatedDTO } from "../../application/dtos/PublicationDTO";
 import { PublicationService } from "../../application/services/PublicationService";
-import { UnauthorizedException } from '../../domain/entities/exceptions/exceptions';
-import { PaginationDTO } from '@/application/dtos/PaginationDTO';
+import { PaginationDTO } from '../../application/dtos/PaginationDTO';
+import { HandlerRequest } from './HandlerRequest';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class PublicationController {
     constructor(private readonly publicationService: PublicationService) {}
 
     public async createPublication(req: Request, res: Response): Promise<void> {
-        try {
-            const userId = req.user?.userId;
+        HandlerRequest.handle(req, res, async () => {
+            const userId = Validations.requireUser(req.user).userId;
+            Validations.requiredField(req.body.cardId, 'Card ID');
             const publicationData: CreatePublicationDTO = { 
                 ...req.body,
                 ownerId: userId,
             };
             const publication = await this.publicationService.createPublication(publicationData);
-            res.status(201).json(publication);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message }); 
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return publication;
+        }, 201, true);
     }
 
     public async getAllPublications(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const filters: PublicationFilterDTO = {
                 gamesIds: req.query.gamesIds ? (req.query.gamesIds as string).split(',') : undefined,
                 status: req.query.status ? (req.query.status as string) : undefined,
@@ -41,20 +35,12 @@ export class PublicationController {
             };
         
             const publications = await this.publicationService.getAllPublications(filters);
-            res.status(200).json(publications);
-        } catch (error) {
-          if (error instanceof UnauthorizedException) {
-            res.status(401).json({ error: error.message });
-          } else if (error instanceof Error) {
-            res.status(400).json({ error: error.message });
-          } else {
-            res.status(500).json({ error: 'An unexpected error occurred' });
-          }
-        }
+            return publications;
+        }, 200, true);
     }
 
     public async getAllPublicationsPaginated(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const filters: PaginationDTO<PublicationFilterDTO> = {
                 data: {
                     initialDate: req.query.initialDate ? new Date(req.query.initialDate as string) : undefined,
@@ -72,70 +58,41 @@ export class PublicationController {
             };
 
             const publications = await this.publicationService.getAllPublicationsPaginated(filters);
-            res.status(200).json(publications);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return publications;
+        }, 200, true);
     }
 
     public async getPublication(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const id = req.params.id;
+            Validations.validateId(id, 'Publication ID');
             const publication = await this.publicationService.getPublication(id)
-            res.status(200).json(publication)
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-              res.status(400).json({ error: error.message });
-            } else {
-              res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-          }   
+            return publication;
+        }, 200, true);
     }
 
     public async updatePublication(req: Request, res: Response): Promise<void> {
-        try {
-            const userId = req.user!.userId;
+        HandlerRequest.handle(req, res, async () => {
+            const userId = Validations.requireUser(req.user).userId;
             const id = req.params.id;
+            Validations.validateId(id, 'Publication ID');
             const publicationData : PublicationUpdatedDTO = {
                 ...req.body,
                 userId
             }
             const publication = await this.publicationService.updatePublication(id, publicationData)
-            res.status(200).json(publication)
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-              res.status(400).json({ error: error.message });
-            } else {
-              res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-          }   
+            return publication;
+        }, 200, true);
     }
 
     public async deletePublication(req: Request, res: Response): Promise<void> {
-        try {
-            const userId = req.user!.userId;
+        HandlerRequest.handle(req, res, async () => {
+            const userId = Validations.requireUser(req.user).userId;
             const id = req.params.id;
+            Validations.validateId(id, 'Publication ID');
             await this.publicationService.deletePublication(userId,id)
-            res.status(204).send();
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-              res.status(400).json({ error: error.message });
-            } else {
-              res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-          }   
+            return;
+        }, 204, false);
     }
 }
 

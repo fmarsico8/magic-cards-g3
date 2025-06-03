@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { JwtService, TokenResponse } from '../../infrastructure/auth/jwt.service';
 import { CreateUserDTO } from '../dtos/UserDTO';
 import { UserService } from './UserService';
-import { UnauthorizedException, UserNotFoundError } from '../../domain/entities/exceptions/exceptions';
+import { UnauthorizedException } from '../../domain/entities/exceptions/HttpException';
 
 
 interface LoginDTO {
@@ -26,9 +26,6 @@ export class AuthService {
     private readonly userService: UserService
   ) {}
 
-  /**
-   * Register a new user
-   */
   public async register(userData: CreateUserDTO): Promise<AuthResponseDTO> {
     
     const savedUser = await this.userService.createUser(userData);
@@ -46,9 +43,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Login a user
-   */
   public async login(credentials: LoginDTO): Promise<AuthResponseDTO> {
     
     const user = await this.userService.getUser(credentials.email);
@@ -59,7 +53,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const tokens = this.jwtService.generateTokens(user);
@@ -75,9 +69,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Compare passwords
-   */
   private async comparePasswords(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }

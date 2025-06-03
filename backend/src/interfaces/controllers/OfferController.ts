@@ -1,57 +1,41 @@
 import { Request, Response } from 'express';
 import { OfferService} from '../../application/services/OfferService';
 import { CreateOfferDTO, OfferFilterDTO, OfferUpdatedDTO } from '../../application/dtos/OfferDTO';
-import { UnauthorizedException } from '../../domain/entities/exceptions/exceptions';
-import { PaginationDTO } from '@/application/dtos/PaginationDTO';
-import { Offer } from '@/domain/entities/Offer';
+import { PaginationDTO } from '../../application/dtos/PaginationDTO';
+import { HandlerRequest } from './HandlerRequest';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class OfferController {
     constructor(private readonly offerService: OfferService) {}
 
     public async createOffer(req: Request, res: Response): Promise<void> {
-        try {
-            const userId = req.user?.userId;
+        HandlerRequest.handle(req, res, async () => {
+            const user = Validations.requireUser(req.user);
+            Validations.validateId(req.body.publicationId, 'Publication ID');
             const offerData: CreateOfferDTO = {
                 ...req.body,
-                offerOwnerId: userId,   
+                offerOwnerId: user.userId,   
             };
             const offer = await this.offerService.createOffer(offerData);
-            res.status(201).json(offer);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return offer;
+        }, 201, true);
     }
 
     public async getAllOffers(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const filters: OfferFilterDTO = {
                 ownerId: req.query.ownerId ? (req.query.ownerId as string) : undefined,
                 publicationId: req.query.publicationId ? (req.query.publicationId as string) : undefined,
                 status: req.query.status ? (req.query.status as string) : undefined,
             };
-
             const offers = await this.offerService.getAllOffer(filters);
-            res.status(200).json(offers);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return offers;
+        }, 200, true);
     }
 
 
     public async getAllOffersPaginated(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const filters: PaginationDTO<OfferFilterDTO> = {
                 data: {
                     ownerId: req.query.ownerId ? (req.query.ownerId as string) : undefined,
@@ -67,62 +51,38 @@ export class OfferController {
             };
 
             const offers = await this.offerService.getAllOfferPaginated(filters);
-            res.status(200).json(offers);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return offers;
+        }, 200, true);
     }
 
     public async getOffer(req: Request, res: Response): Promise<void> {
-        try {
+        HandlerRequest.handle(req, res, async () => {
             const id = req.params.id;
+            Validations.validateId(id, 'Offer ID');
             const offer = await this.offerService.getOffer(id);
-            if (offer) {
-                res.status(200).json(offer);
-            } else {
-                res.status(404).json({ error: 'Offer not found' });
-            }
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }
+            return offer;
+        }, 200, true);
     }
 
     public async updateOffer(req: Request, res: Response): Promise<void> {
-        try{
+        HandlerRequest.handle(req, res, async () => {
             const id = req.params.id;
-            const userId = req.user?.userId;
+            Validations.validateId(id, 'Offer ID');
+            const user = Validations.requireUser(req.user);
             const offerData: OfferUpdatedDTO = {
                 ...req.body,
-                userId: userId,   
+                userId: user.userId,   
             };
             const offer = await this.offerService.updateOffer(id, offerData);
-            res.status(200).json(offer);
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                res.status(401).json({ error: error.message });
-            } else if (error instanceof Error) {
-                res.status(400).json({ error: error.message });
-            } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
-            }
-        }   
-        
+            return offer;
+        }, 200, true);
     }
 
     public async deleteOffer(req: Request, res: Response): Promise<void> {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-        
+        HandlerRequest.handle(req, res, async () => {
+            const id = req.params.id;
+            Validations.validateId(id, 'Offer ID');
+           // await this.offerService.deleteOffer(id);
+        }, 204, false);
     }
 }

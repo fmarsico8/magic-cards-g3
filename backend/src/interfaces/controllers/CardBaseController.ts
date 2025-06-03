@@ -2,60 +2,41 @@ import { Request, Response } from 'express';
 import { CardBaseService } from '../../application/services/CardBaseService';
 import { CardBaseFilterDTO, CreateCardBaseDTO, UpdateCardBaseDTO } from '../../application/dtos/CardBaseDTO';
 import { PaginationDTO } from '../../application/dtos/PaginationDTO';
+import { HandlerRequest } from './HandlerRequest';
+import { Validations } from '../../infrastructure/utils/Validations';
 
 export class CardBaseController {
   constructor(private readonly cardBaseService: CardBaseService) {}
 
   public async createCardBase(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const cardBaseData: CreateCardBaseDTO = req.body;
+      Validations.validateId(cardBaseData.gameId, 'Game ID');
+      Validations.requiredField(cardBaseData.nameCard, 'Name Base Card');
       const cardBase = await this.cardBaseService.createCardBase(cardBaseData);
-      res.status(201).json(cardBase);
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Game not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return cardBase;
+    }, 201, true);
   }
 
   public async getCardBase(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const cardBaseId = req.params.id;
+      Validations.validateId(cardBaseId, 'CardBase ID');
       const cardBase = await this.cardBaseService.getCardBase(cardBaseId);
-      res.status(200).json(cardBase);
-    } catch (error) {
-      if (error instanceof Error && error.message === 'CardBase not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return cardBase;
+    }, 200, true);
   }
 
   public async getAllCardBases(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const gameId = req.query.gameId as string | undefined;
       const cardBases = await this.cardBaseService.getAllCardBases(gameId);
-      res.status(200).json(cardBases);
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Game not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return cardBases;
+    }, 200, true);
   }
 
   public async getAllCardBasesPaginated(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
         const filters: PaginationDTO<CardBaseFilterDTO> = {
             data: {
                 nameCard: req.query.name ? (req.query.name as string) : undefined,
@@ -66,46 +47,25 @@ export class CardBaseController {
         };
 
         const cards = await this.cardBaseService.getAllCardBasesPaginated(filters);
-        res.status(200).json(cards);
-    } catch (error) {
-        if (error instanceof Error) {
-            res.status(400).json({ error: error.message });
-        } else {
-            res.status(500).json({ error: 'An unexpected error occurred' });
-        }
-    }
-}
+        return cards;
+    }, 200, true);
+  }
 
   public async updateCardBase(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const cardBaseId = req.params.id;
+      Validations.validateId(cardBaseId, 'CardBase ID');
       const cardBaseData: UpdateCardBaseDTO = req.body;
       const cardBase = await this.cardBaseService.updateCardBase(cardBaseId, cardBaseData);
-      res.status(200).json(cardBase);
-    } catch (error) {
-      if (error instanceof Error && (error.message === 'CardBase not found' || error.message === 'Game not found')) {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+      return cardBase;
+    }, 200, true);
   }
 
   public async deleteCardBase(req: Request, res: Response): Promise<void> {
-    try {
+    HandlerRequest.handle(req, res, async () => {
       const cardBaseId = req.params.id;
+      Validations.validateId(cardBaseId, 'CardBase ID');
       await this.cardBaseService.deleteCardBase(cardBaseId);
-      res.status(204).send();
-    } catch (error) {
-      if (error instanceof Error && error.message === 'CardBase not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      }
-    }
+    }, 204, false);
   }
 } 

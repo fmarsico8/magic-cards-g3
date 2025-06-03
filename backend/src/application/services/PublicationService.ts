@@ -8,6 +8,8 @@ import { CardBase } from "../../domain/entities/CardBase";
 import { CardBaseService } from "./CardBaseService";
 import { Statistic, StatisticType } from "../../domain/entities/Stadistics";
 import { PaginatedResponseDTO, PaginationDTO } from "../dtos/PaginationDTO";
+import { BadRequestException } from "../../domain/entities/exceptions/HttpException";
+import { Validations } from "../../infrastructure/utils/Validations";
 
 export class PublicationService {
     cardService : CardService = new CardService(cardRepository);
@@ -23,9 +25,8 @@ export class PublicationService {
       
         myCard.validateOwnership(user, "card");
 
-        if (publicationData.valueMoney == null && cardExchangeIds.length === 0) {
-          throw new Error("Invalid publication: must include valueMoney or cardExchangeIds.");
-        }
+        this.ensureHasUpdateAction({isUpdateValue: publicationData.valueMoney != null,
+           isUpdateExchange: cardExchangeIds.length > 0, isCancel: false});
 
         if (publicationData.valueMoney)
           this.validateMoney(publicationData.valueMoney);
@@ -76,17 +77,13 @@ export class PublicationService {
     public async updatePublication(id: string, publicationData: PublicationUpdatedDTO): Promise<PublicationResponseDTO> {
       const publication = await this.getPublicationById(id);
       const user = await this.userService.getSimpleUser(publicationData.userId);
-    
       publication.validateOwnership(user, "publication");
-    
       const cardExchangeIds = publicationData.cardExchangeIds ?? [];
       const isUpdateValue = publicationData.valueMoney != null;
       const isUpdateExchange = cardExchangeIds.length > 0;
       const isCancel = publicationData.cancel === true;
     
-      if (!isUpdateValue && !isUpdateExchange && !isCancel) {
-        throw new Error("Invalid publication: must include valueMoney, cardExchangeIds, or cancel flag.");
-      }
+      this.ensureHasUpdateAction({isUpdateValue, isUpdateExchange, isCancel});
     
       if (isCancel) {
         const rejectedOffers = publication.closePublication();
@@ -161,15 +158,23 @@ export class PublicationService {
     }
 
     private async getPublicationById(id: string): Promise<Publication> {
-      const publication = await this.publicationRepository.findById(id)
-      if(!publication){
-        throw Error("Publication not found")
-        }
+      let publication = await this.publicationRepository.findById(id)
+      publication = Validations.ensureFound(publication, "Publication");
       return publication;
     }
 
-    private async validateMoney(money: number): Promise<void> {
+    private validateMoney(money: number): void {
       if(money <= 0)
-        throw Error("Invalid publication: valueMoney must be bigger than 0")
+        throw new BadRequestException("Invalid publication: valueMoney must be bigger than 0")
+    }
+
+    private ensureHasUpdateAction(options: 
+      {isUpdateValue: boolean, isUpdateExchange: boolean, isCancel: boolean}): void {
+      const { isUpdateValue, isUpdateExchange, isCancel } = options;
+      if (!isUpdateValue && !isUpdateExchange && !isCancel) {
+        throw new BadRequestException(
+          "Invalid publication: must include valueMoney, cardExchangeIds, or cancel flag."
+        );
+      }
     }
 }

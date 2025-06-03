@@ -7,6 +7,7 @@ import { CardBaseService } from "./CardBaseService";
 import { Statistic, StatisticType } from "../../domain/entities/Stadistics";
 import { PaginatedResponseDTO, PaginationDTO } from "../dtos/PaginationDTO";
 import { storage } from "../../infrastructure/files/IStorageProvider";
+import { Validations } from "../../infrastructure/utils/Validations";
 
 export class CardService {
     userService : UserService = new UserService(userRepository);
@@ -26,7 +27,7 @@ export class CardService {
             statusCard: cardData.statusCard
         });
 
-        this.cardRepository.save(card)
+        await this.cardRepository.save(card)
         await statisticsRepository.increment(new Statistic(StatisticType.CARDS_TOTAL, new Date(), 1));
         return this.toCardResponseDTO(card);
       }
@@ -87,9 +88,7 @@ export class CardService {
         const card = await this.getSimpleCard(id);
         const user = await this.userService.getSimpleUser(cardData.ownerId);
 
-        if (card.getOwner().getId() !== user.getId()) {
-            throw new Error('User is not the owner of the card');
-        }
+        card.validateOwnership(user, "Card")
 
         if (cardData.urlImage) {
             card.setUrlImage(cardData.urlImage);
@@ -105,16 +104,17 @@ export class CardService {
         const card = await this.getSimpleCard(id);
         const user = await this.userService.getSimpleUser(userId);
 
-        if (card.getOwner().getId() !== user.getId()) {
-            throw new Error('User is not the owner of the card');
-        }
+        card.validateOwnership(user, "Card")
 
         return this.cardRepository.delete(id);
     }
 
     public async getSimpleCard(id: string) : Promise<Card> {
-        return await this.cardRepository.findById(id);
+        const card = await this.cardRepository.findById(Validations.validateId(id, 'Card ID'));
+        return Validations.ensureFound(card, 'Card');
     }
+
+
     
       
 }
