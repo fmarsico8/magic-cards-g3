@@ -18,6 +18,11 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=1h
       - MONGO_URI=${MONGO_URI}
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/healthz"]
@@ -31,6 +36,46 @@ services:
       - dev
     volumes:
       - ./backend/uploads:/app/uploads
+    depends_on:
+      - rabbitmq
+
+  mail-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: magic-cards-mail-worker
+    command: npm run start:worker
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    restart: unless-stopped
+    networks:
+      - app-network
+    profiles:
+      - dev
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    profiles:
+      - dev
+
   mongo:
     image: mongo:6
     container_name: mongo
@@ -59,6 +104,7 @@ services:
 
 volumes:
   mongo_data:
+  rabbitmq_data:
 
 networks:
   app-network:

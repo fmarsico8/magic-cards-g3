@@ -3,6 +3,7 @@ import { JwtService, TokenResponse } from '../../infrastructure/auth/jwt.service
 import { CreateUserDTO } from '../dtos/UserDTO';
 import { UserService } from './UserService';
 import { UnauthorizedException } from '../../domain/entities/exceptions/HttpException';
+import { notifierService } from '../../infrastructure/provider/Container';
 
 
 interface LoginDTO {
@@ -31,6 +32,8 @@ export class AuthService {
     const savedUser = await this.userService.createUser(userData);
 
     const tokens = this.jwtService.generateTokens(savedUser);
+
+    await notifierService.notify(savedUser.getEmail(), 'Bienvenido a la plataforma', 'Gracias por registrarte en nuestra plataforma. Esperamos que disfrutes de nuestros servicios.');
 
     return {
       user: {

@@ -5,6 +5,8 @@ import { MongoCardRepository } from "../persistence/mongo/repository/MongoCardRe
 import { MongoPublicationRepository } from "../persistence/mongo/repository/MongoPublicationRepository";
 import { MongoOfferRepository } from "../persistence/mongo/repository/MongoOfferRepository";
 import { MongoStatisticsRepository } from "../persistence/mongo/repository/MongoStatisticsRepository";
+import { QueueNotifier } from "../notifier/QueueNotifier";
+import { NotifierService } from "../../application/services/NotifierService";
 
 export const userRepository = new MongoUserRepository();
 export const publicationRepository = new MongoPublicationRepository();
@@ -13,3 +15,4 @@ export const cardRepository = new MongoCardRepository();
 export const gameRepository = new MongoGameRepository();
 export const cardBaseRepository = new MongoCardBaseRepository();
 export const statisticsRepository = new MongoStatisticsRepository();
+export const notifierService = new NotifierService(new QueueNotifier());
