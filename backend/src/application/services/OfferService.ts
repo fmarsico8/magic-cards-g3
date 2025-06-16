@@ -1,7 +1,7 @@
 import { Offer } from "../../domain/entities/Offer";
 import { OfferRepository } from "../../domain/repositories/OfferRepository";
 import { CreateOfferDTO, OfferFilterDTO, OfferResponseDTO, OfferUpdatedDTO } from "../dtos/OfferDTO";  
-import { userRepository, publicationRepository, cardRepository, statisticsRepository} from "../../infrastructure/provider/Container";
+import { userRepository, publicationRepository, cardRepository, statisticsRepository, notifierService} from "../../infrastructure/provider/Container";
 import { Card } from "../../domain/entities/Card";
 import { UserService } from "./UserService";
 import { StatusOffer } from "../../domain/entities/StatusOffer";
@@ -93,6 +93,24 @@ export class OfferService {
             await publicationRepository.update(publication);
             await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_ACCEPTED, new Date(), 1));
             await Promise.all(offers.map((o) => this.offerRepository.update(o)));
+            await notifierService.acceptOfferNotify(
+                offer.getOfferOwner().getEmail(),
+                publication.getCard().getCardBase().getName()
+            );
+            await notifierService.publicationAcceptedNotify(
+                publication.getOwner().getEmail(),
+                publication.getCard().getCardBase().getName()
+            );
+            await Promise.all(
+                offers
+                  .filter(o => o.getId() !== offer.getId())
+                  .map((o) =>
+                    notifierService.rejectOfferNotify(
+                      o.getOfferOwner().getEmail(),
+                      publication.getCard().getCardBase().getName()
+                    )
+                  )
+            );
             return this.toOfferResponseDTO(offer);
         }
 
@@ -101,6 +119,10 @@ export class OfferService {
             await publicationRepository.update(publication);
             await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_REJECTED, new Date(), 1));
             await this.offerRepository.update(rejectedOffer);
+            await notifierService.rejectOfferNotify(
+                offer.getOfferOwner().getEmail(),
+                publication.getCard().getCardBase().getName()
+            );
             return this.toOfferResponseDTO(rejectedOffer);
         }
         

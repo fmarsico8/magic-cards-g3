@@ -43,7 +43,6 @@ export const startMailWorker = async () => {
   console.log('[👂] MailWorker escuchando cola NOTIFICATION_QUEUE');
 };
 
-// Start the worker when this file is executed directly
 if (require.main === module) {
   startMailWorker().catch((error) => {
     console.error('[❌] Error fatal:', error);

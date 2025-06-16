@@ -33,7 +33,7 @@ export class AuthService {
 
     const tokens = this.jwtService.generateTokens(savedUser);
 
-    await notifierService.notify(savedUser.getEmail(), 'Bienvenido a la plataforma', 'Gracias por registrarte en nuestra plataforma. Esperamos que disfrutes de nuestros servicios.');
+    await notifierService.welcomeNotify(savedUser.getEmail());
 
     return {
       user: {
