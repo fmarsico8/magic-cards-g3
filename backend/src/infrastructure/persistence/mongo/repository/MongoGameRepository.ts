@@ -6,6 +6,7 @@ import { PaginationDTO, PaginatedResponseDTO } from "../../../../application/dto
 import { GameFilterDTO } from "../../../../application/dtos/GameDTO";
 import { isValidObjectId } from "mongoose";
 import { BadRequestException } from "../../../../domain/entities/exceptions/HttpException";
+import { Validations } from "../../../../infrastructure/utils/Validations";
 
 export class MongoGameRepository implements GameRepository {
   private gameModel: GameModel;
@@ -68,5 +69,11 @@ export class MongoGameRepository implements GameRepository {
       offset,
       hasMore: offset + limit < total,
     };
+  }
+
+  async findByName(name: string): Promise<Game | undefined> {
+    const normalized = Validations.normalizeName(name);
+    const doc = await this.gameModel.findByName(normalized);
+    return doc ? toGameEntity(doc) : undefined;
   }
 }
