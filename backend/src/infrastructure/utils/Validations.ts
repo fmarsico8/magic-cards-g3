@@ -34,7 +34,22 @@ export class Validations {
       throw new BadRequestException(`Invalid ${entity}s with IDs: ${missing.join(', ')}`);
     }
   }
-  
-  
-  
+
+  static ensureUniqueName(bool: boolean, entity: string): void {
+    if (bool) {
+      throw new BadRequestException(`${entity} name already exists`);
+    }
+  }
+
+  static normalizeName(name: string): string {
+    return name
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+    
 }

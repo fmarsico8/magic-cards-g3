@@ -1,4 +1,5 @@
 import { generateUUID } from "./utils";
+import { Validations } from "../../infrastructure/utils/Validations";
 
 export interface GameProps {
     id?: string;
@@ -15,7 +16,7 @@ export class Game {
 
     constructor(props: GameProps) {
         this.id = props.id || generateUUID();
-        this.name = props.name;
+        this.name = Validations.normalizeName(props.name);
         this.createdAt = props.createdAt || new Date();
         this.updatedAt = props.updatedAt || new Date();
     }
@@ -37,7 +38,7 @@ export class Game {
     }
 
     public setName(name: string): void {
-        this.name = name;
+        this.name = Validations.normalizeName(name);
         this.updatedAt = new Date();
     }
 

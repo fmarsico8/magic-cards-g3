@@ -6,6 +6,7 @@ import { PaginationDTO, PaginatedResponseDTO } from "../../../../application/dto
 import { CardBaseModel } from "../models/CardBaseModel";
 import { CardBaseMapper } from "../mappers/cardBase.mapper";
 import { gameRepository } from "../../../../infrastructure/provider/Container";
+import { Validations } from "../../../../infrastructure/utils/Validations";
 
 export class MongoCardBaseRepository implements CardBaseRepository {
   private cardBaseModel: CardBaseModel;
@@ -104,5 +105,14 @@ export class MongoCardBaseRepository implements CardBaseRepository {
       offset: filters.offset || 0,
       hasMore: (filters.offset || 0) + (filters.limit || 10) < total,
     };
+  }
+
+  async findByNameAndGame(name: string, gameId: string): Promise<CardBase | undefined> {
+    const normalized = Validations.normalizeName(name);
+    const doc = await this.cardBaseModel.findByNameAndGame(normalized, gameId);
+    if (!doc) return undefined;
+    const game = await gameRepository.findById(doc.gameId.toString());
+    if (!game) return undefined;
+    return CardBaseMapper.toEntity(doc, game);
   }
 }

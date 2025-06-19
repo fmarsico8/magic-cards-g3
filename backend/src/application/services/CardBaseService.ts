@@ -19,6 +19,9 @@ export class CardBaseService {
   public async createCardBase(cardBaseData: CreateCardBaseDTO): Promise<CardBaseResponseDTO> {
     let game = await this.gameRepository.findById(cardBaseData.gameId);
     game = Validations.ensureFound(game, 'Game');
+    const normalizedName = Validations.normalizeName(cardBaseData.nameCard);
+    const existing = await this.cardBaseRepository.findByNameAndGame(normalizedName, game.getId());
+    Validations.ensureUniqueName(existing !== undefined, 'CardBase');
     
     const cardBase = new CardBase({
       game,
@@ -68,6 +71,14 @@ export class CardBaseService {
       newGame = Validations.ensureFound(newGame, 'Game');
       game = newGame;
     }
+    const newName = cardBaseData.nameCard || existingCardBase.getName();
+    const normalizedNewName = Validations.normalizeName(newName);
+
+    if (normalizedNewName !== existingCardBase.getName()) {
+      const duplicate = await this.cardBaseRepository.findByNameAndGame(normalizedNewName, game.getId());
+      Validations.ensureUniqueName(duplicate !== undefined, 'CardBase');
+    }
+
     const updatedCardBase = new CardBase({
       id: existingCardBase.getId(),
       game,

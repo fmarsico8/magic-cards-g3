@@ -9,4 +9,5 @@ export interface GameRepository {
     findById(id: string): Promise<Game | undefined>;
     findAll(): Promise<Game[]>;
     findPaginated(filters: PaginationDTO<GameFilterDTO>): Promise<PaginatedResponseDTO<Game>>;
+    findByName(name: string): Promise<Game | undefined>;
 } 

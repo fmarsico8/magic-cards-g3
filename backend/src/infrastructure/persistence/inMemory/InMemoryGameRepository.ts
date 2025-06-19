@@ -32,6 +32,10 @@ export class InMemoryGameRepository implements GameRepository {
     async findById(id: string): Promise<Game | undefined> {
         return this.games.find(g => g.getId() === id) || undefined;
     }
+
+    async findByName(name: string): Promise<Game | undefined> {
+        return this.games.find(g => g.getName() === name) || undefined;
+    }
     
     async findAll(): Promise<Game[]> {
         return [...this.games];
