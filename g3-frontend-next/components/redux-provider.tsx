@@ -3,7 +3,9 @@
 import { useEffect } from "react"
 import { Provider } from "react-redux"
 import { store } from "@/lib/store"
-import { restoreSession } from "@/lib/userSlice" // Ajustá el path
+import { restoreSession } from "@/lib/userSlice"
+import { fetchUserNotifications } from "@/lib/notificationSlice"
+import _ from "lodash"
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -16,7 +18,7 @@ export function ReduxProvider({ children }: { children: React.ReactNode }) {
 
       // Restaurar en Redux
       store.dispatch(restoreSession(parsedUser))
-
+      store.dispatch(fetchUserNotifications(parsedUser.id))
     }
   }, [])
 

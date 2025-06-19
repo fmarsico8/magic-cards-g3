@@ -10,22 +10,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Menu, User, LogIn, WalletCardsIcon as Cards, BookOpen, PlusCircle, BarChart } from "lucide-react"
+import { Menu, User, LogIn, WalletCardsIcon as Cards, BookOpen, PlusCircle, BarChart, Bell } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { logout } from "@/lib/userSlice"
+import { Badge } from "@/components/ui/badge"
 
 export default function Navbar() {
   const pathname = usePathname()
   const dispatch = useAppDispatch()
   const { currentUser } = useAppSelector((state) => state.user)
+  const { unreadCount } = useAppSelector((state) => state.notifications)
   const isLoggedIn = !!currentUser
   const isAdmin = currentUser?.role === 'admin'
 
   const handleLogout = () => {
     dispatch(logout())
-    // Redirect to home page
     window.location.href = "/"
   }
 
@@ -95,6 +96,19 @@ export default function Navbar() {
                 <Button variant="outline" size="sm">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Card
+                </Button>
+              </Link>
+              <Link href="/notifications" className="relative">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs"
+                    >
+                      {unreadCount}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
               <DropdownMenu>
