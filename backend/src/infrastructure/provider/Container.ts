@@ -5,6 +5,7 @@ import { MongoCardRepository } from "../persistence/mongo/repository/MongoCardRe
 import { MongoPublicationRepository } from "../persistence/mongo/repository/MongoPublicationRepository";
 import { MongoOfferRepository } from "../persistence/mongo/repository/MongoOfferRepository";
 import { MongoStatisticsRepository } from "../persistence/mongo/repository/MongoStatisticsRepository";
+import { MongoNotificationRepository } from "../persistence/mongo/repository/MongoNotificationRepository";
 
 export const userRepository = new MongoUserRepository();
 export const publicationRepository = new MongoPublicationRepository();
@@ -13,3 +14,4 @@ export const cardRepository = new MongoCardRepository();
 export const gameRepository = new MongoGameRepository();
 export const cardBaseRepository = new MongoCardBaseRepository();
 export const statisticsRepository = new MongoStatisticsRepository();
+export const notificationRepository = new MongoNotificationRepository();

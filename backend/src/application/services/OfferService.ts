@@ -1,18 +1,23 @@
 import { Offer } from "../../domain/entities/Offer";
 import { OfferRepository } from "../../domain/repositories/OfferRepository";
 import { CreateOfferDTO, OfferFilterDTO, OfferResponseDTO, OfferUpdatedDTO } from "../dtos/OfferDTO";  
-import { userRepository, publicationRepository, cardRepository, statisticsRepository} from "../../infrastructure/provider/Container";
+import { userRepository, publicationRepository, cardRepository, statisticsRepository, notificationRepository} from "../../infrastructure/provider/Container";
 import { Card } from "../../domain/entities/Card";
 import { UserService } from "./UserService";
 import { StatusOffer } from "../../domain/entities/StatusOffer";
 import { Statistic, StatisticType } from "../../domain/entities/Stadistics";
 import { PaginatedResponseDTO, PaginationDTO } from "../dtos/PaginationDTO";
 import { Validations } from "../../infrastructure/utils/Validations";
+import { NotificationService } from "./NotificationService";
 
 
 export class OfferService {
     userService : UserService = new UserService(userRepository);
-    constructor(private readonly offerRepository: OfferRepository) {}
+    private notificationService: NotificationService;
+
+    constructor(private readonly offerRepository: OfferRepository) {
+        this.notificationService = new NotificationService(notificationRepository);
+    }
 
     public async createOffer(offerData: CreateOfferDTO): Promise<OfferResponseDTO> {
         let publication = await publicationRepository.findById(offerData.publicationId);
@@ -43,6 +48,17 @@ export class OfferService {
         await publicationRepository.update(publication);
         await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_TOTAL, new Date(), 1));
         await this.offerRepository.save(offer);
+
+        // Create notification for publication owner
+        try {
+            await this.notificationService.createOfferCreatedNotification(
+                offer.getId(),
+                publication.getOwner().getId(),
+                offerOwner.getName()
+            );
+        } catch (error) {
+            console.error('Failed to create offer notification:', error);
+        }
 
         return this.toOfferResponseDTO(offer);
     }
@@ -93,6 +109,18 @@ export class OfferService {
             await publicationRepository.update(publication);
             await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_ACCEPTED, new Date(), 1));
             await Promise.all(offers.map((o) => this.offerRepository.update(o)));
+
+            // Create notification for offer owner
+            try {
+                await this.notificationService.createOfferAcceptedNotification(
+                    offer.getId(),
+                    offer.getOfferOwner().getId(),
+                    publication.getOwner().getName()
+                );
+            } catch (error) {
+                console.error('Failed to create offer accepted notification:', error);
+            }
+
             return this.toOfferResponseDTO(offer);
         }
 
@@ -101,6 +129,18 @@ export class OfferService {
             await publicationRepository.update(publication);
             await statisticsRepository.increment(new Statistic(StatisticType.OFFERS_REJECTED, new Date(), 1));
             await this.offerRepository.update(rejectedOffer);
+
+            // Create notification for offer owner
+            try {
+                await this.notificationService.createOfferRejectedNotification(
+                    offer.getId(),
+                    offer.getOfferOwner().getId(),
+                    publication.getOwner().getName()
+                );
+            } catch (error) {
+                console.error('Failed to create offer rejected notification:', error);
+            }
+
             return this.toOfferResponseDTO(rejectedOffer);
         }
         
