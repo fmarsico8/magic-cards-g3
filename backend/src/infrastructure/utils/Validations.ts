@@ -51,5 +51,13 @@ export class Validations {
       .replace(/\s+/g, " ")
       .trim();
   }
+
+  static validatePasswordComplexity(password: string): void {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!regex.test(password)) {
+      throw new BadRequestException("Password must be at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.");
+    }
+  }
+  
     
 }

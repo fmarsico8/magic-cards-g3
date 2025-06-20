@@ -108,7 +108,7 @@ class App {
     const userService = new UserService(userRepository);
     const name     = process.env.ADMIN_NAME     || 'Administrator';
     const email    = process.env.ADMIN_EMAIL    || 'admin@example.com';
-    const password = process.env.ADMIN_PASSWORD || 'admin';
+    const password = process.env.ADMIN_PASSWORD || 'Admin@1234';
     const role     = 'admin';
 
     try {
