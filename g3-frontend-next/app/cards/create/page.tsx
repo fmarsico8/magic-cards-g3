@@ -15,7 +15,7 @@ import { createCardStart, createCardSuccess, createCardFailure, createCard } fro
 import { createGame, fetchGames} from "@/lib/gameSlice"
 import { CreateGameDTO } from "@/types/game"
 import type { CreateCardBaseDTO, CreateCardDTO, CardResponseDTO } from "@/types/card"
-import { Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import { createCardBase, fetchCardBases } from "@/lib/cardBaseSlice"
 import _ from "lodash"
 
@@ -41,7 +41,9 @@ export default function CreateCardPage() {
 
   // Form state for card details
   const [statusCard, setStatusCard] = useState<number>(5)
-  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null) 
+  const [imageError, setImageError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState("")
   const [formErrors, setFormErrors] = useState<{
     cardBase?: string
@@ -148,19 +150,47 @@ export default function CreateCardPage() {
       errors.statusCard = "Status must be between 1 and 10"
     }
 
-    if (!imageFile) {
-      errors.image = "Please select an image file"
-    } else if (!imageFile.type.startsWith('image/')) {
-      errors.image = "Please select a valid image file"
-    }
-
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png"]
+      if (!allowedTypes.includes(file.type)) {
+        setImageError("The image should have the following type: jpg, jpeg, png")
+        setSelectedFile(null)
+        setImagePreviewUrl(null)
+      } else {
+        setImageError(null)
+        setSelectedFile(file)
+        setImagePreviewUrl(URL.createObjectURL(file)) // Create a URL for preview
+      }
+    } else {
+      setImageError(null)
+      setSelectedFile(null)
+      setImagePreviewUrl(null)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setSelectedFile(null)
+    setImagePreviewUrl(null)
+    setImageError(null)
+    const fileInput = document.getElementById("cardImage") as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ""
+    }
+  }
 
 
-  // Handle form submission to create a new card
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitError("")
@@ -168,6 +198,22 @@ export default function CreateCardPage() {
     try {
       if (!currentUser) {
         dispatch(createCardFailure("You must be logged in to create a card"))
+        return
+      }
+
+      // Additional validation checks before form submission
+      if (!selectedGameId) {
+        setSubmitError("Please select or create a game first")
+        return
+      }
+
+      if (!selectedCardBaseId) {
+        setSubmitError("Please select or create a card first")
+        return
+      }
+
+      if (!selectedFile) {
+        setSubmitError("Please upload an image for your card")
         return
       }
 
@@ -180,7 +226,7 @@ export default function CreateCardPage() {
       const cardData: CreateCardDTO = {
         cardBaseId: selectedCardBaseId,
         statusCard: statusCard,
-        image: imageFile!,
+        image: selectedFile!,
         ownerId: currentUser.id
       }
 
@@ -239,6 +285,7 @@ export default function CreateCardPage() {
                     <Input
                       value={newGameName}
                       onChange={(e) => setNewGameName(e.target.value)}
+                      onKeyDown={handleKeyDown}
                       placeholder="Enter new game name"
                     />
                     <Button
@@ -295,6 +342,7 @@ export default function CreateCardPage() {
                       <Input
                         value={newCardBaseName}
                         onChange={(e) => setNewCardBaseName(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         placeholder="Enter new card name"
                       />
                       <Button
@@ -329,36 +377,61 @@ export default function CreateCardPage() {
                       max={10}
                       value={statusCard}
                       onChange={(e) => setStatusCard(Number.parseInt(e.target.value))}
+                      onKeyDown={handleKeyDown}
                     />
                     <p className="text-xs text-muted-foreground">
                       Rate the condition of your card from 1 (poor) to 10 (mint)
                     </p>
                     {formErrors.statusCard && <p className="text-sm text-red-500">{formErrors.statusCard}</p>}
                   </div>
-
                   <div className="space-y-2">
-                    <label htmlFor="image" className="text-sm font-medium">
+                    <label htmlFor="cardImage" className="text-sm font-medium">
                       Card Image
                     </label>
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          setImageFile(file)
-                        }
-                      }}
-                    />
+                    <div className="flex items-center space-x-2">
+                      <label
+                        htmlFor="cardImage"
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 cursor-pointer"
+                      >
+                        Choose File
+                      </label>
+                      <Input
+                        id="cardImage"
+                        type="file"
+                        accept=".jpg,.jpeg,.png"
+                        onChange={handleFileChange}
+                        className="sr-only"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {selectedFile ? selectedFile.name : "No file chosen"}
+                      </span>
+                    </div>
                     <p className="text-xs text-muted-foreground">Upload an image of your card</p>
-                    {formErrors.image && <p className="text-sm text-red-500">{formErrors.image}</p>}
+                    {imageError && <p className="text-sm text-red-500">{imageError}</p>} {/* Display image error */}
+                    {imagePreviewUrl && (
+                      <div className="relative mt-4 w-fit">
+                        <img
+                          src={imagePreviewUrl || "/placeholder.svg"}
+                          alt="Card Preview"
+                          className="max-w-[150px] h-auto rounded-md border"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background/80 hover:bg-background"
+                          onClick={handleRemoveImage}
+                          aria-label="Remove image"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
-
                   <Button
                     type="submit"
                     className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
-                    disabled={isLoading}
+                    disabled={isLoading || !!imageError }
                   >
                     {isLoading ? "Creating card..." : "Add Card"}
                   </Button>
