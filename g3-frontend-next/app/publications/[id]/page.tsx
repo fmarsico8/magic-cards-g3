@@ -231,7 +231,7 @@ export default function PublicationDetailPage({ params }: { params: { id: string
                     >
                       <div className="flex justify-between items-center mb-2">
                         <Badge>{offer.statusOffer}</Badge>
-                        {offer.moneyOffer && <span className="font-medium">${offer.moneyOffer}</span>}
+                        {offer.moneyOffer && offer.moneyOffer > 0 && <span className="font-medium">${offer.moneyOffer}</span>}
                       </div>
                       { _.size(offer.cardExchangeIds) > 0 && (
                         <div>
@@ -276,6 +276,7 @@ export default function PublicationDetailPage({ params }: { params: { id: string
                             value={moneyOffer}
                             onChange={(e) => setMoneyOffer(Number(e.target.value))}
                             className="col-span-3"
+                            required
                           />
                         </div>
                       </div>

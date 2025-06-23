@@ -12,4 +12,5 @@ export interface CardBaseRepository {
     findByGame(game: Game): Promise<CardBase[]>;
     findAll(): Promise<CardBase[]>; 
     findPaginated(filters: PaginationDTO<CardBaseFilterDTO>): Promise<PaginatedResponseDTO<CardBase>>;
+    findByNameAndGame(name: string, gameId: string): Promise<CardBase | undefined>;
 }

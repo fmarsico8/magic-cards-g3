@@ -1,6 +1,7 @@
 import { SchemaFactory } from './SchemaFactory';
 import { BaseModel, IBaseDocument } from './BaseModel';
 import { Types } from 'mongoose';
+import { Validations } from '@/infrastructure/utils/Validations';
 
 export interface ICardBase extends IBaseDocument {
   gameId: Types.ObjectId;
@@ -46,5 +47,11 @@ export class CardBaseModel extends BaseModel<ICardBase> {
     const docs = await this.model.find(query).skip(offset).limit(limit).exec();
     
     return { docs, total };
+  }
+
+  async findByNameAndGame(name: string, gameId: string): Promise<ICardBase | undefined> {
+    const objectId = new Types.ObjectId(gameId);
+    const doc = await this.model.findOne({ nameCard: name, gameId: objectId }).exec();
+    return doc ?? undefined;
   }
 }

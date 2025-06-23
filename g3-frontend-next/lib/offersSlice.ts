@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import { type OfferFilterDTO, type OfferResponseDTO, type CreateOfferDTO, type OfferUpdatedDTO, StatusOffer} from "@/types/offer"
+import { type OfferFilterDTO, type OfferResponseDTO, type CreateOfferDTO, type OfferUpdatedDTO} from "@/types/offer"
 import type { PaginatedResponseDTO, PaginationDTO } from "@/types/pagination"
 import { offerService } from "@/services/offer-service"
 import Promise from "bluebird"

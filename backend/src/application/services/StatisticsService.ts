@@ -1,4 +1,4 @@
-import { Statistic } from "../../domain/entities/Stadistics";
+import { Statistic, TimePeriod, ViewType } from "../../domain/entities/Stadistics";
 import { StatisticsRepository } from "../../domain/repositories/StatisticsRepository";
 import {RangeStatisticDTO, StatisticResponseDTO } from "../dtos/StatisticsDTO";
 import { userRepository } from "../../infrastructure/provider/Container";
@@ -16,7 +16,26 @@ export class StatisticsService {
         {
             throw new UnauthorizedException("Only Admins can view statistics");
         }
-        const statistics = await this.statisticsRepository.getRangeStatistics(statisticsDTO.type, statisticsDTO.from, statisticsDTO.to);
+
+        let statistics: Statistic[];
+        
+        if (statisticsDTO.timePeriod && statisticsDTO.viewType) {
+            statistics = await this.statisticsRepository.getRangeStatisticsWithPeriod(
+                statisticsDTO.type, 
+                statisticsDTO.from, 
+                statisticsDTO.to,
+                statisticsDTO.timePeriod,
+                statisticsDTO.viewType
+            );
+        } else {
+            // Fallback to original method for backward compatibility
+            statistics = await this.statisticsRepository.getRangeStatistics(
+                statisticsDTO.type, 
+                statisticsDTO.from, 
+                statisticsDTO.to
+            );
+        }
+        
         return this.toStatisticDTO(statistics);
     }
 

@@ -1,6 +1,7 @@
 import { SchemaFactory } from './SchemaFactory';
 import { BaseModel, IBaseDocument } from './BaseModel';
 import { Types } from 'mongoose';
+import { Validations } from '@/infrastructure/utils/Validations';
 
 export interface IGame extends IBaseDocument {
   name: string;
@@ -30,5 +31,10 @@ export class GameModel extends BaseModel<IGame> {
     const total = await this.model.countDocuments(query);
     const docs = await this.model.find(query).skip(offset).limit(limit).exec();
     return { docs, total };
+  }
+
+  async findByName(name: string): Promise<IGame | undefined> {
+    const doc = await this.model.findOne({ name: name }).exec();
+    return doc ?? undefined;
   }
 }
