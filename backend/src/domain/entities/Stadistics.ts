@@ -8,6 +8,18 @@ export enum StatisticType {
     OFFERS_REJECTED = 'offers_rejected',
 }
 
+export enum TimePeriod {
+    DAY = 'day',
+    MONTH = 'month',
+    QUARTER = 'quarter',
+    YEAR = 'year'
+}
+
+export enum ViewType {
+    PERIOD_BY_PERIOD = 'period_by_period',
+    ACCUMULATED = 'accumulated'
+}
+
 export class Statistic {
     constructor(
       public readonly type: StatisticType,

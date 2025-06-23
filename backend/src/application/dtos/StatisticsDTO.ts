@@ -1,4 +1,4 @@
-import { StatisticType } from "../../domain/entities/Stadistics";
+import { StatisticType, TimePeriod, ViewType } from "../../domain/entities/Stadistics";
 
 export interface StatisticDTO {
     userId: string;
@@ -12,6 +12,8 @@ export interface RangeStatisticDTO {
     type: StatisticType;
     from: Date;
     to: Date;
+    timePeriod?: TimePeriod;
+    viewType?: ViewType;
 }
 
 export interface StatisticResponseDTO {

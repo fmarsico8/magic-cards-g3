@@ -1,70 +1,72 @@
 "use client"
-import { useState, useEffect } from 'react';
-import { StatisticType } from '@/types/statistic';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchStatistics, setSelectedType } from '@/lib/statisticSlice';
 
-export default function StatisticsPage() {
-  const dispatch = useAppDispatch();
-  const { statistics, isLoading, error } = useAppSelector((state) => state.statistics);
-  const [selectedStatistic, setSelectedStatistic] = useState<StatisticType>(StatisticType.USERS_REGISTERED);
+import { useState, useEffect, useMemo } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StatisticType } from "@/types/statistic"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { getFormattedDate, type TimeGranularity } from "@/lib/utils"
+import { useAppDispatch, useAppSelector } from "@/lib/hooks"
+import { fetchEnhancedStatistics, setSelectedType, setGranularity, setViewType } from "@/lib/statisticSlice"
+
+type ViewType = "punctual" | "accumulated"
+
+export default function StatisticsDashboard() {
+  const dispatch = useAppDispatch()
+  const { enhancedStatistics, isLoading, error, selectedType, granularity, viewType } = useAppSelector((state) => state.statistics)
+  
+  const [selectedStatistic, setSelectedStatistic] = useState<StatisticType>(StatisticType.OFFERS_ACCEPTED)
+  const [currentGranularity, setCurrentGranularity] = useState<TimeGranularity>("day")
+  const [currentViewType, setCurrentViewType] = useState<ViewType>("punctual")
+
+  const statisticOptions = useMemo(
+    () => [
+      { value: StatisticType.USERS_REGISTERED, label: "Users Registered" },
+      { value: StatisticType.USERS_LOGIN, label: "Users Login" },
+      { value: StatisticType.CARDS_TOTAL, label: "Cards Total" },
+      { value: StatisticType.PUBLICATIONS_TOTAL, label: "Publications Total" },
+      { value: StatisticType.OFFERS_TOTAL, label: "Offers Total" },
+      { value: StatisticType.OFFERS_ACCEPTED, label: "Offers Accepted" },
+      { value: StatisticType.OFFERS_REJECTED, label: "Offers Rejected" },
+    ],
+    [],
+  )
+
+  const fetchStatisticsData = () => {
+    dispatch(fetchEnhancedStatistics(selectedStatistic, currentGranularity, currentViewType))
+  }
 
   useEffect(() => {
-    const from = new Date();
-    from.setDate(from.getDate() - 30); 
-    const to = new Date();
-
-    dispatch(fetchStatistics({
-      type: selectedStatistic,
-      from,
-      to,
-    }));
-  }, [dispatch, selectedStatistic]);
+    fetchStatisticsData()
+  }, [selectedStatistic, currentGranularity, currentViewType])
 
   const handleStatisticChange = (value: StatisticType) => {
-    setSelectedStatistic(value);
-    dispatch(setSelectedType(value));
-  };
+    setSelectedStatistic(value)
+    dispatch(setSelectedType(value))
+  }
 
-  const currentData = statistics[selectedStatistic] || [];
+  const handleGranularityChange = (value: TimeGranularity) => {
+    setCurrentGranularity(value)
+    dispatch(setGranularity(value))
+  }
 
-  // Format the data for the chart
-  const formattedData = currentData.map(item => ({
-    ...item,
-    date: new Date(item.date).toLocaleDateString(),
-    value: item.amount
-  }));
+  const handleViewTypeChange = (value: string) => {
+    const viewType = value as ViewType
+    setCurrentViewType(viewType)
+    dispatch(setViewType(viewType))
+  }
+
+  const chartData = useMemo(() => {
+    return enhancedStatistics.map((stat) => ({
+      date: getFormattedDate(stat.date, currentGranularity),
+      value: stat.amount,
+    }))
+  }, [enhancedStatistics, currentGranularity])
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Statistics Dashboard</h1>
-      
-      <div className="mb-6">
-        <Select
-          value={selectedStatistic}
-          onValueChange={handleStatisticChange}
-        >
-          <SelectTrigger className="w-[300px]">
-            <SelectValue placeholder="Select statistic type" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.values(StatisticType).map((type) => (
-              <SelectItem key={type} value={type}>
-                {type.replace(/_/g, ' ').toLowerCase()}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
@@ -74,49 +76,72 @@ export default function StatisticsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>
-            {selectedStatistic.replace(/_/g, ' ').toLowerCase()}
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Select value={selectedStatistic} onValueChange={handleStatisticChange}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select Statistic" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statisticOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={currentGranularity} onValueChange={handleGranularityChange}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Select Granularity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Day</SelectItem>
+                  <SelectItem value="month">Month</SelectItem>
+                  <SelectItem value="quarter">Quarter</SelectItem>
+                  <SelectItem value="year">Year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Tabs value={currentViewType} onValueChange={handleViewTypeChange}>
+              <TabsList>
+                <TabsTrigger value="punctual">Punctual</TabsTrigger>
+                <TabsTrigger value="accumulated">Accumulated</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center items-center h-[400px]">
-              Loading...
+            <div className="flex items-center justify-center h-[400px]">
+              <p>Loading statistics...</p>
             </div>
           ) : (
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={formattedData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="date"
-                    tick={{ fontSize: 12 }}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => value.toLocaleString()}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [value.toLocaleString(), 'Value']}
-                    labelFormatter={(label) => `Date: ${label}`}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    name={selectedStatistic.replace(/_/g, ' ').toLowerCase()}
-                    stroke="#8884d8"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart
+                data={chartData}
+                margin={{
+                  top: 8,
+                  right: 32,
+                  left: 24,
+                  bottom: 8,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#8884d8"
+                  activeDot={{ r: 8 }}
+                  name={statisticOptions.find((s) => s.value === selectedStatistic)?.label}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           )}
         </CardContent>
       </Card>
     </div>
-  );
+  )
 } 
