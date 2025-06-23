@@ -1,5 +1,5 @@
 import { StatisticsRepository } from "../../../../domain/repositories/StatisticsRepository";
-import { Statistic, StatisticType } from "../../../../domain/entities/Stadistics";
+import { Statistic, StatisticType, TimePeriod, ViewType } from "../../../../domain/entities/Stadistics";
 import { StatisticsModel } from "../models/StatisticsModel";
 
 export class MongoStatisticsRepository implements StatisticsRepository {
@@ -34,5 +34,38 @@ export class MongoStatisticsRepository implements StatisticsRepository {
     const results = await this.statisticsModel.aggregateMetricsByDay(type.toString(), startDate, endDate);
 
     return results.map((r: any) => Statistic.fromAggregatedFormat({ ...r, metric: type.toString() }));
+  }
+
+  async getRangeStatisticsWithPeriod(
+    type: StatisticType, 
+    startDate: Date, 
+    endDate: Date, 
+    timePeriod: TimePeriod = TimePeriod.DAY, 
+    viewType: ViewType = ViewType.PERIOD_BY_PERIOD
+  ): Promise<Statistic[]> {
+    
+    if (viewType === ViewType.ACCUMULATED) {
+      const results = await this.statisticsModel.getAccumulatedStatistics(
+        type.toString(), 
+        startDate, 
+        endDate, 
+        timePeriod
+      );
+      
+      return results.map((r: any) => new Statistic(
+        type,
+        r._id,
+        r.accumulated
+      ));
+    } else {
+      const results = await this.statisticsModel.aggregateMetricsByPeriod(
+        type.toString(), 
+        startDate, 
+        endDate, 
+        timePeriod
+      );
+      
+      return results.map((r: any) => Statistic.fromAggregatedFormat({ ...r, metric: type.toString() }));
+    }
   }
 }

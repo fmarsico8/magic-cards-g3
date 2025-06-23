@@ -272,7 +272,7 @@ export default function NotificationsPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {_.map(filteredNotifications, (notification) => (
+          {_.map(_.orderBy(filteredNotifications, ['date'], ['desc']), (notification) => (
             <NotificationCard
               key={notification.id}
               notification={notification}
